@@ -141,7 +141,7 @@ export const vueDebounce = function (funcName, time) {
  * @param {*} funcName 
  * @param {*} time 
  */
-export const throttle =  function(funcName,time) {
+export const throttle = function(funcName,time) {
   var timeout = null, time = time || 800
   return function () {
     var args = [...arguments],context = this

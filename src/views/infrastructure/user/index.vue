@@ -1,14 +1,7 @@
 <template>
   <div class="app-user">
-    <div class='app-container' v-show="!pageChange">
-    <div class="tree-block">
-      <el-input placeholder="输入关键字进行过滤" v-model="filterText" />
-      <el-tree ref='tree' :data='tree' node-key='id' :props='defaultProps'
-      v-loading='treeLoading' :filter-node-method='filterNode'
-      class='filter-tree' default-expand-all highlight-current 
-      @node-click="nodeClick" />
-    </div>
-    <div class='table-block'>
+    <div class='app-container' v-show="!pageChange" style="display: flex; flex-direction: column; width: 100%;">
+    <div class="form-block">
       <el-form inline :model='form' label-width='80px'>
         <el-form-item>
           <el-input placeholder='员工姓名' v-model='form.name'/> 
@@ -23,7 +16,9 @@
           <el-button type='primary' @click='serach'>查询</el-button>
           <el-button type='primary' @click='addUser'>添加员工</el-button>
         </el-form-item>
-    </el-form>
+      </el-form>
+    </div>
+    <div class='table-block'>
     <el-table
       v-loading='listLoading' element-loading-text='Loading' :data='list'
       border fit stripe size='medium' >
@@ -251,13 +246,5 @@ export default {
 }
 </script>
 <style scoped>
-.app-container {
-  display: flex;
-}
-.table-block {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
 </style>
 

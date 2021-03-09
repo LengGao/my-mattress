@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-export function createStore(params) {
+export function create(params) {
     return request({
         url: '/admin/shop/create',
         method: 'post',
@@ -8,7 +8,7 @@ export function createStore(params) {
     })
 }
 
-export function updateStore(params) {
+export function update(params) {
     return request({
         url: '/admin/shop/update',
         method: 'post',
@@ -16,7 +16,7 @@ export function updateStore(params) {
     })
 }
 
-export function getStore(params) {
+export function search(params) {
     return request({
         url: '/admin/shop/get',
         method: 'post',
@@ -24,15 +24,15 @@ export function getStore(params) {
     })
 }
 
-export function searchStore(params) {
+export function all(params) {
     return request({
         url: '/admin/shop/paginate',
-        method: 'post',
+        method: 'get',
         params
     })
 }
 
-export function banStore(params) {
+export function ban(params) {
     return request({
         url: '/admin/shop/change_status',
         method: 'post',
