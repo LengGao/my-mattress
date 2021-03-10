@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-export function cerateRage(params) {
+export function cerate(params) {
  return request({
    url: '/admin/region/create',
    method: 'post',
@@ -8,7 +8,7 @@ export function cerateRage(params) {
  }) 
 }
 
-export function deleteRage(params) {
+export function deleter(params) {
   return request({
     url: '/admin/region/delete',
     method: 'post',
@@ -16,7 +16,7 @@ export function deleteRage(params) {
   }) 
  }
 
- export function updateeRage(params) {
+ export function update(params) {
   return request({
     url: '/admin/region/update',
     method: 'post',
@@ -28,7 +28,7 @@ export function deleteRage(params) {
   * 省市区列表
   * @param {*} params page=1,size=20
   */
- export function searchRage(params) {
+ export function all(params) {
   return request({
     url: '/admin/region/paginate',
     method: 'GET',
@@ -36,7 +36,7 @@ export function deleteRage(params) {
   }) 
  }
 
- export function getRage(id) {
+ export function search(id) {
   return request({
     url: '/admin/region/get',
     method: 'GET',
@@ -63,3 +63,63 @@ export function deleteRage(params) {
     params
   }) 
  }
+
+ /**
+  * 所有省
+  * @param {*} [name] 地区名称
+  */
+export function provinces (params) {
+  return request({
+    url: '/admin/region/provinces',
+    method: 'get',
+    params
+  })
+}
+
+/**
+  * 所有市
+  * @param {*} province_id 省id
+  * @param {*} [name] 地区名称
+  */
+ export function cities (params) {
+  return request({
+    url: '/admin/region/cities',
+    method: 'get',
+    params
+  })
+}
+
+/**
+  * 所有区
+  * @param {*} city_id 省id
+  * @param {*} [name] 地区名称
+  */
+ export function districts (params) {
+  return request({
+    url: '/admin/region/districts',
+    method: 'get',
+    params
+  })
+}
+
+/**
+  * 所有子节点
+  * @param {*} [parent_id] 父id
+  */
+ export function childrens (params) {
+  return request({
+    url: '/admin/region/children',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 所有城市等级列表
+ */
+export function cityGenders () {
+  return request({
+    url: '/admin/region/city_gender',
+    method: 'get',
+  })
+}

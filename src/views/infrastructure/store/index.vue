@@ -1,22 +1,37 @@
 <template>
   <div class="app-store">
-    <div class="app-container" style="">
+    <div class="app-container" v-show="!pageChange" style="display: flex; flex-direction: column; width: 100%;">
       <div class="form-block">
-        <!-- <el-form inline :model='form' label-width='80px'>
-          <el-form-item>
-            <el-input placeholder='员工姓名' v-model='form.name'/> 
+        <el-form inline :model="form" >
+          <el-form-item><el-input placeholder="门店名称" v-model="form.name" /></el-form-item>
+            <el-form-item>
+            <el-select v-model="form.type" placeholder="门店类型">
+              <div v-if="optionsType.length > 0"><el-option v-for="(item,index) in optionsType" :key="index" :label="item.label" :value="item.val"></el-option></div>
+            </el-select>
           </el-form-item>
           <el-form-item>
-            <el-select placeholder='状态' v-model='form.status' clearable>
-              <el-option value='1'>启用</el-option>  
-              <el-option value='0'>禁用</el-option>
-            </el-select> 
+            <el-time-picker placeholder="创建时间" v-model="form.start_at"></el-time-picker>
           </el-form-item>
           <el-form-item>
-            <el-button type='primary' @click='serach'>查询</el-button>
-            <el-button type='primary' @click='addUser'>添加员工</el-button>
+            <el-select placeholder="省" v-model.number="form.province_id" @change="handlerRegion('省',form.province_id)" clearable>
+             <el-option v-for="(item,index) in optionsProvince" :key="index" :label="item.name" :value="item.id"></el-option>
+            </el-select>
           </el-form-item>
-        </el-form> -->
+          <el-form-item>
+            <el-select placeholder="省" v-model.number="form.city_id" @change="handlerRegion('市',form.city_id)" clearable>
+              <el-option v-for="(item,index) in optionsCity" :key="index" :label="item.name" :value="item.id"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-select placeholder="区" v-model.number="form.district_id" @change="handlerRegion('区',form.district_id)" clearable>
+              <el-option v-for="(item,index) in optionsDistrict" :key="index" :label="item.name" :value="item.id"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="searchData">查询</el-button>
+            <el-button type="primary" @click="handlerAdd">新增</el-button>
+          </el-form-item>
+        </el-form>
       </div>
       <div class="table-block">
         <el-table v-loading='listLoading' element-loading-text='Loading' :data='list'
@@ -36,12 +51,12 @@
               {{scope.row[item.key]}}
             </template>
           </el-table-column>
-
           <el-table-column label='操作' align='center' min-width="200px">
             <template slot-scope='scope'>
-              <el-button type='text' @click='handlerEdit(scope.$index, scope.row)'>编辑</el-button>
-              <el-button type='text' @click='banDebouce(scope.$index, scope.row)'>{{scope.row.status === 1 ? '禁用' : ' 启用'}}</el-button>
-              <el-button type="text" @click="handlerDetail(scope.$index,scope.row)">详情</el-button>
+              <el-button type='text' @click='handlerEdit(scope.$index,scope.row)'>编辑</el-button>
+              <el-button type='text' @click='banDebouce(scope.$index,scope.row)'>{{scope.row.status === 1 ? '禁用' : ' 启用'}}</el-button>
+              <el-button type="text" @click="handlerMember(scope.$index,scope.row)">查看会员</el-button>
+              <el-button type="text" @click="handlerDetail(scope.$index,scope.row)">查看订单</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -55,22 +70,31 @@
       </div>
     </div>
 
-
+    <modify v-show="pageChange" mtitle="'订单'" :type='typeChange' @close="handlerPageChange" > </modify>
   </div>
 </template>
 
 <script>
-import { all, ban } from '@/api/infrastructure/store'
+import { all,ban } from '@/api/infrastructure/store'
+import { provinces,cities,districts} from '@/api/infrastructure/range'
 import { vueDebounce } from '@/utils/index'
+import Modify from './modify'
 // 门店管理
 export default {
+  components: {Modify},
   data() {
     return {      
       /* search form */
-      form: {},
+      form: {name: '',type:'',start_at:'',province_id:'',city_id:'',district_id:''},
       preform: [{label: '', key: '', type: '', childs: false}],
       role: [],
       formLoading: true,
+      optionsType: [],
+      optionsProvince: [],
+      optionsCity: [],
+      optionsDistrict: [],
+      province_id: '',
+      city_id: '',
       /* table data */
       list: [],
       preList: [{label: '', key: '', type: ''}],
@@ -85,6 +109,16 @@ export default {
       typeChange: '',
     }
   },
+  watch: {
+    province_id: function (newVal) {
+      console.log("province_id",newVal);
+      if (newVal) { this.getCity(newVal) }
+    },
+    city_id: function(newVal) {
+      console.log("city_id",newVal);
+      if (newVal) { this.getDistrict(this.city_id) }
+    }
+  },
   methods: {
     /* 搜索表单逻辑 */
     searchData() {
@@ -93,21 +127,59 @@ export default {
       this.fetchDataTable(option)
     },
     handlerAdd() {
-      this.pageChange = true
-      this.typeChange = 'add'
+      this.handlerPageChange(true,'add')
+    },
+    handlerRegion(type,region_id) {
+      console.log("type",type,region_id);
+      switch(type) {
+        case '省': 
+          this.province_id = region_id; 
+          if(!region_id) { this.optionsCity = [],this.optionsDistrict = [],this.form.province_id = '',this.form.city_id = '',this.form.district_id = '' }
+        break;
+        case '市': 
+          this.city_id = region_id;
+          if (!this.province_id) { this.$message.error('请先选择省') } 
+          if (!region_id) { this.optionsDistrict = [],this.form.city_id = '',this.form.district_id = '' }
+        break;
+        case '区': 
+          if (!region_id) { this.form.district_id = '' }
+          if (!this.province_id || !this.city_id) { this.$message.error('请先选择省/市') } 
+        break;
+      }
+    },
+    getProvinces(name) {
+      provinces({name}).then(res => {
+        this.optionsProvince = res.data
+      })
+    },
+    getCity(province_id,name) {
+      cities({province_id,name}).then(res => {
+        this.optionsCity = res.data
+      })
+    },
+    getDistrict(city_id,name) {
+      districts({city_id,name}).then(res => {
+        this.optionsDistrict = res.data
+      })
     },
     /* 表格逻辑 */
     initTable() {
       var option = this.initSearchFeild(this.getSearchFeild())
       this.fetchData(option)
     },
-    handlerEdit() {
-      this.pageChange = true
-      this.typeChange = 'edit'
+    handlerEdit(index,data) {
+      this.handlerPageChange(true,'edit')
+      this.$message.info('功能正在开发。。。')
     },
-    handlerDetail() {
-      this.pageChange = true
-      this.typeChange = 'detail'
+    handlerDetail(index,data) {
+      this.handlerPageChange(true,'detail')
+      this.$message.info('功能正在开发。。。')
+    },
+    handlerMember(index,data) {
+      this.$message.info('功能正在开发。。。')
+    },
+    handlerCopy(index,data) {
+      this.$message.info('功能正在开发。。。')
     },
     banDebouce: vueDebounce('handlerBan'),
     handlerBan(index,data){
@@ -146,13 +218,25 @@ export default {
       this.fetchDataTable(this.getSearchFeild())
     },
     /* 公共逻辑 */
+    handlerPageChange (event,type) {
+      this.pageChange = event
+      this.typeChange = type
+    },
     getSearchFeild() {
       // 获取fetchData参数，缺什么加什么
       // var {currentPage,pageSize,form} = this
       // var option = {page: currentPage,size: pageSize}
       var {currentPage,pageSize,form} = this
-      var option = {page: currentPage,size: pageSize,name: '',start_at: '',end_at: '',province_id: '',city_id: '', district_id: ''}
-      return option
+      return {
+        page: currentPage,
+        size: pageSize,
+        name: form.name,
+        type: form.type,
+        start_at: form.start_at ,
+        province_id: form.province_id,
+        city_id: form.city_id, 
+        district_id: form.district_id
+      }
     },
     initSearchFeild(data){
       // 初始化请求参数
@@ -170,30 +254,8 @@ export default {
       return data
     },
     pretreatForm() {
-      // 预处理表单数据
+      // 预处理表单数据 暂不做
       // var items = []  // options: Array | 'function'
-      // let items = [
-      //   {label: '部门名称', key: '', type: ''},
-      //   {label: '部们类型', key: '', type: 'select', childs: true, options: []},
-      //   {label: '创建时间', key: '', type: 'select', childs: true, options: []},
-      //   {label: '省', key: '', type: 'select', childs: true, options: []},
-      //   {label: '市', key: '', type: 'select', childs: true, options: []},
-      //   {label: '区', key: '', type: 'select', childs: true, options: []}
-      // ]
-      // const options = {
-      //   "type": [{label: '社区店',value: '1'},{label: '商圈店',value: '2'}]
-      // }
-      // items.forEach(item => {
-      //   if (item.type === 'select') {
-      //     if (!item.options instanceof Array) {
-      //         items.options().then( res => {
-      //          item.options = res.data.list
-      //        })
-      //     } else { 
-      //       item.options = options[key]
-      //     }
-      //   }
-      // })
     },
     pretreatTable() {
       // 预处理表格数据 
@@ -218,14 +280,19 @@ export default {
         if(item.type === 'select') item.options = options[item.key]
       })
       return items
+    },
+    initComponet() {
+      this.optionsType = [{label: '社区店',val: 1},{label: '商圈店',val: 2}]
+      this.getProvinces()
     }
-    
   },
   created() {
-    var option = this.getSearchFeild()
-    this.fetchDataTable(option)
+    this.initComponet()
+    this.fetchDataTable(this.getSearchFeild())
   },
   destroyed() {
   }
 }
 </script>
+<style scoped>
+</style>
