@@ -1,7 +1,7 @@
 <template>
  <div class="app-header">
     <div>&nbsp;&nbsp;</div>
-    <div>{{ $attrs.mtitle }}</div>
+    <div>{{ mtitle }}</div>
     <el-button type="primary" v-on="$listeners" >返回</el-button>
  </div>
 </template>
@@ -10,9 +10,7 @@
  export default {
     name: 'my-header',
     inheritAttrs: false,
-    created() {
-      console.log('$attrs',this.$listeners);
-    }
+    props: ['mtitle'],
  }
 </script>
 
@@ -24,6 +22,7 @@
    flex-direction: row;
    justify-content: space-between;
    align-items: center;
+   padding: 0 10px;
    background: linear-gradient(to right, #243949 0%, #517fa4 100%);
 }
 </style>

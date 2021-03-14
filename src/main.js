@@ -36,6 +36,7 @@ Vue.use(ElementUI, { zhLocale })
 
 Vue.config.productionTip = false
 
+
 new Vue({
   el: '#app',
   router,

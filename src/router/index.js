@@ -1,6 +1,12 @@
 /* eslint-disable */
 import Vue from 'vue'
 import Router from 'vue-router'
+import tempRoutes from './temp-routes'
+
+// VueRouter.prototype.push = function push(location) {
+//   return routerPush.call(this, location).catch(error=> error)
+// }
+
 
 Vue.use(Router)
 
@@ -96,8 +102,8 @@ export const constantRoutes = [
         meta: { title: '角色管理', icon: 'tree' }
       },
       {
-        path: 'store',
-        name: 'store',
+        path: 'stores',
+        name: 'stores',
         component: () => import('@/views/infrastructure/store/index'),
         meta: { title: '门店管里', icon: 'table' }
       },
@@ -289,14 +295,21 @@ export const constantRoutes = [
 
   // { path: '*', redirect: '/404', hidden: true }
 ]
-
 const createRouter = () => new Router({
   // mode: 'history', // require service support
+  redirect: 'noRedirect',
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRoutes
 })
 
 const router = createRouter()
+tempRoutes.forEach(item => {
+  router.addRoute(item.parentName,item.route)  
+})
+
+
+
+// router.addRoutes(tempRoutes)
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {

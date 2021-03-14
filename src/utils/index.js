@@ -131,6 +131,7 @@ export const vueDebounce = function (funcName, time) {
       } else {
         timeout = setTimeout(()=> {
           context[funcName].apply(context,args);
+          timeout = null
         },time)
       }
     }
@@ -149,7 +150,7 @@ export const throttle = function(funcName,time) {
       timeout = setTimeout(()=> {
         context[funcName].apply(context,args)
         timeout = null
-      })
+      },time)
     }
   }
 }

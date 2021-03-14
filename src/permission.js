@@ -15,6 +15,12 @@ router.beforeEach(async(to, from, next) => {
   NProgress.start()
 
   // set page title
+  // switch(to.query.type) {
+  //   case 'edit': to.meta.title = '详情'; break;
+  //   case 'add': to.meta.title = '添加'; break;
+  //   case 'dateil': to.meta.title = '详情'; break; 
+  //   default: ; break;
+  // }
   document.title = getPageTitle(to.meta.title)
 
   // determine whether the user has logged in

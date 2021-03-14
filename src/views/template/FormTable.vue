@@ -1,5 +1,5 @@
 <template>
-  <div class="app-store">
+  <div class="app-xxx">
     <div class="app-container" style="display: flex; flex-direction: column; width: 100%;">
       <div class="form-block">
         <el-form inline :model="form" ref="searchForm">
@@ -283,17 +283,11 @@ export default {
     this.initComponet()
     this.fetchDataTable(this.getSearchFeild())
   },
-  mounted(){
-      // console.log("index mounted:",this);
-  },
-  updated(){
-      // console.log("index updated:",this);
-  },
   beforeDestroy() {
-    // console.log('index beforeDestroy');
+    console.log('beforeDestroy');
   },
   destroyed() {
-    // console.log("index destroyed");
+    console.log("destroyed");
   }
 }
 </script>

@@ -16,10 +16,11 @@ export function update(params) {
     })
 }
 
+// 单个详情
 export function search(params) {
     return request({
         url: '/admin/shop/get',
-        method: 'post',
+        method: 'get',
         params
     })
 }
