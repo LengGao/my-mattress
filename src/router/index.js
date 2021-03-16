@@ -50,18 +50,18 @@ export const constantRoutes = [
     hidden: true
   },
 
-  // {
-  //   path: '/temp',
-  //   component: Layout,
-  //   redirect: '/temp',
-  //   name: 'temp',
-  //   children: [{
-  //     path: 'temp',
-  //     name: 'temp',
-  //     component: () => import('@/views/temp/temp/index'),
-  //     meta: { title: '测试页面', icon: 'dashboard' }
-  //   }]
-  // },
+  {
+    path: '/temp',
+    component: Layout,
+    redirect: '/temp',
+    name: 'temp',
+    children: [{
+      path: 'temp',
+      name: 'temp',
+      component: () => import('@/views/temp/temp/index'),
+      meta: { title: '测试页面', icon: 'dashboard' }
+    }]
+  },
 
   {
     path: '/',
@@ -129,6 +129,40 @@ export const constantRoutes = [
   },
   
   {
+    path: '/commodity',
+    component: Layout,
+    redirect: '/commodity/attribute',
+    name: 'commodity',
+    meta: {title: '产品', icon: 'nested' },
+    children: [
+      {
+        path: 'attribute',
+        name: 'attribute',
+        component: () => import('@/views/commodity/attribute/index'), // Parent router-view
+        meta: { title: '属性管理' }
+      },
+      {
+        path: 'dimension',
+        name: 'dimension',
+        component: () => import('@/views/commodity/dimension/index'),
+        meta: { title: '尺寸管理' }
+      },
+      {
+        path: 'product',
+        name: 'product',
+        component: () => import('@/views/commodity/product//index'),
+        meta: { title: '产品管理' }
+      },
+      {
+        path: 'attributeCombination',
+        name: 'attributeCombination',
+        component: () => import('@/views/commodity/attributeCombination/index'),
+        meta: { title: '产品属性组合' }
+      }
+    ]
+  },
+
+  {
     path: '/store',
     component: Layout,
     redirect: '/store/QRcode',
@@ -150,6 +184,79 @@ export const constantRoutes = [
     ]
   },
 
+  {
+    path: '/promotion',
+    component: Layout,
+    redirect: '/promotion/coupons',
+    name: 'promotion',
+    meta: { title: '营销', icon: 'form' },
+    children: [
+      {
+        path: 'coupons',
+        name: 'coupons',
+        component: () => import('@/views/promotion/coupons/index'),
+        meta: { title: '优惠券方案管理', icon: 'table' }
+      },
+      {
+        path: 'couponDistribution',
+        name: 'couponDistribution',
+        component: () => import('@/views/promotion/couponDistribution/index'),
+        meta: { title: '优惠券发放设置', icon: 'table' }
+      },
+      {
+        path: 'couponUsage',
+        name: 'couponUsage',
+        component: () => import('@/views/promotion/couponUsage/index'),
+        meta: { title: '优惠券使用情况', icon: 'table' }
+      }
+    ]
+  },
+
+    {
+    path: '/order',
+    component: Layout,
+    redirect: '/order/orderInquiry',
+    name: 'order',
+    meta: { title: '订单管理', icon: 'el-icon-s-help' },
+    children: [
+      {
+        path: 'orderInquiry',
+        name: 'orderInquiry',
+        component: () => import('@/views/order/orderInquiry/index'),
+        meta: { title: '订单查询', icon: 'link' }
+      },
+      {
+        path: 'orderProcessingFlow',
+        name: 'orderProcessingFlow',
+        component: () => import('@/views/order/orderProcessingFlow/index'),
+        meta: { title: '订单处理流程', icon: 'nested' }
+      }
+    ]
+  },
+
+  {
+    path: '/order',
+    component: Layout,
+    redirect: '/order/orderInquiry',
+    name: 'Example',
+    meta: { title: '订单管理', icon: 'el-icon-s-help' },
+    children: [
+      {
+        path: 'orderInquiry',
+        name: 'orderInquiry',
+        component: () => import('@/views/order/orderInquiry/index'),
+        meta: { title: '订单查询', icon: 'link' }
+      },
+      {
+        path: 'orderProcessingFlow',
+        name: 'orderProcessingFlow',
+        component: () => import('@/views/order/orderProcessingFlow/index'),
+        meta: { title: '订单处理流程', icon: 'nested' }
+      }
+    ]
+  },
+
+  
   {
     path: '/member',
     component: Layout,
@@ -206,89 +313,6 @@ export const constantRoutes = [
     ]
   },
 
-  {
-    path: '/order',
-    component: Layout,
-    redirect: '/order/orderInquiry',
-    name: 'Example',
-    meta: { title: '订单管理', icon: 'el-icon-s-help' },
-    children: [
-      {
-        path: 'orderInquiry',
-        name: 'orderInquiry',
-        component: () => import('@/views/order/orderInquiry/index'),
-        meta: { title: '订单查询', icon: 'link' }
-      },
-      {
-        path: 'orderProcessingFlow',
-        name: 'orderProcessingFlow',
-        component: () => import('@/views/order/orderProcessingFlow/index'),
-        meta: { title: '订单处理流程', icon: 'nested' }
-      }
-    ]
-  },
-
-  {
-    path: '/promotion',
-    component: Layout,
-    redirect: '/promotion/coupons',
-    name: 'promotion',
-    meta: { title: '促销管理', icon: 'form' },
-    children: [
-      {
-        path: 'coupons',
-        name: 'coupons',
-        component: () => import('@/views/promotion/coupons/index'),
-        meta: { title: '优惠券方案', icon: 'table' }
-      },
-      {
-        path: 'couponDistribution',
-        name: 'couponDistribution',
-        component: () => import('@/views/promotion/couponDistribution/index'),
-        meta: { title: '优惠券发放', icon: 'table' }
-      },
-      {
-        path: 'couponUsage',
-        name: 'couponUsage',
-        component: () => import('@/views/promotion/couponUsage/index'),
-        meta: { title: '优惠券使用情况', icon: 'table' }
-      }
-    ]
-  },
-
-  {
-    path: '/commodity',
-    component: Layout,
-    redirect: '/commodity/attribute',
-    name: 'commodity',
-    meta: {title: '产品', icon: 'nested' },
-    children: [
-      {
-        path: 'attribute',
-        name: 'attribute',
-        component: () => import('@/views/commodity/attribute/index'), // Parent router-view
-        meta: { title: '属性管理' }
-      },
-      {
-        path: 'dimension',
-        name: 'dimension',
-        component: () => import('@/views/commodity/dimension/index'),
-        meta: { title: '尺寸管理' }
-      },
-      {
-        path: 'product',
-        name: 'product',
-        component: () => import('@/views/commodity/product//index'),
-        meta: { title: '产品管理' }
-      },
-      {
-        path: 'attributeCombination',
-        name: 'attributeCombination',
-        component: () => import('@/views/commodity/attributeCombination/index'),
-        meta: { title: '产品属性组合' }
-      }
-    ]
-  }
 
 
   // 404 page must be placed at the end !!!

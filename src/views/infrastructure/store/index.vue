@@ -78,6 +78,18 @@ import { all,ban } from '@/api/infrastructure/store'
 import { provinces,cities,districts} from '@/api/infrastructure/range'
 import { vueDebounce } from '@/utils/index'
 // 门店管理
+let tableConfig = [
+  {label: '门店编码', key: 'id', type: ''},
+  {label: '门店全称', key: 'name', type: ''},
+  {label: '门店简称', key: 'short_name', type: ''},
+  {label: '门店类型', key: 'type', type: 'select'},
+  {label: '筹备日期', key: 'prepare_date', type: 'date'},
+  {label: '开业日期', key: 'open_date', type: 'date'},
+  {label: '结业日期', key: 'finish_date', type: 'date'},
+  {label: '状态', key: 'status', type: 'status'},
+  {label: '创建人', key: 'creator_name', type: ''},
+  {label: '创建时间', key: 'created_at', type: 'date'}
+]
 export default {
   data() {
     return {      
@@ -252,26 +264,14 @@ export default {
     },
     pretreatTable() {
       // 预处理表格数据 
-      let items = [
-        {label: '门店编码', key: 'id', type: ''},
-        {label: '门店全称', key: 'name', type: ''},
-        {label: '门店简称', key: 'short_name', type: ''},
-        {label: '门店类型', key: 'type', type: 'select'},
-        {label: '筹备日期', key: 'prepare_date', type: 'date'},
-        {label: '开业日期', key: 'open_date', type: 'date'},
-        {label: '结业日期', key: 'finish_date', type: 'date'},
-        {label: '状态', key: 'status', type: 'status'},
-        {label: '创建人', key: 'creator_name', type: ''},
-        {label: '创建时间', key: 'created_at', type: 'date'}
-      ]
       let options = {
         "type": {0: '',1: '社区店',2: '商圈店',length: 3},
         "property": {0: '',1: '直营',2: '加盟',3: '合作',length: 4}
       }
-      items.forEach(item => {
+      tableConfig.forEach(item => {
         if(item.type === 'select') item.options = options[item.key]
       })
-      return items
+      return tableConfig
     },
     initComponet() {
       this.optionsType = [{label: '社区店',val: 1},{label: '商圈店',val: 2}]

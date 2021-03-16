@@ -5,8 +5,8 @@
         v-loading="formLoading" hide-required-asterisk show-message>
         <div style="padding: 20px;"><h3>基本信息</h3> <hr /></div>
         <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="门店编码" prop="ids">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.ids" readonly/></el-col>
+            <el-col :span="10"><el-form-item label="门店编码" prop="id">
+                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.id" disabled/></el-col>
             </el-form-item></el-col>
             <el-col :span="10"><el-form-item label="门店全称" prop="name">
                 <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.name" :maxlength="20" /></el-col>
@@ -24,7 +24,9 @@
 
         <el-row type="flex" justify="space-around" :gutter="2">
             <el-col :span="10"><el-form-item label="上级组织架构" prop="parent_id">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.name" /></el-col>
+                <el-col :span="20"><el-select placeholder="請輸入" v-model="form.parent_id" value="">
+                    <el-option v-for="item in optDept" :key="item.id" :label="item.name" :value="item.parent_id"></el-option>
+                </el-select></el-col>
             </el-form-item></el-col>
             <el-col :span="10"><el-form-item label="性质" prop="property">
                 <el-col :span="20"><MySelect placeholder="請輸入" v-model="form.property" :data="optProperty" @change="onChange" ></MySelect></el-col>
@@ -36,7 +38,7 @@
                 <el-col :span="20"><el-date-picker  placeholder="选择日期" v-model="form.prepare_date"></el-date-picker></el-col>
             </el-form-item></el-col>
             <el-col :span="10"><el-form-item label="开业日期" prop="open_date">
-                <el-col :span="20"><el-date-picker placeholder="請輸入" v-model="form.open_date"></el-date-picker></el-col>
+                <el-col :span="20"><el-date-picker placeholder="請輸入" v-model="form.open_date" @change="handlerBeginData"></el-date-picker></el-col>
             </el-form-item></el-col>
          </el-row>
 
@@ -45,7 +47,7 @@
                 <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.address" :maxlength="20" /></el-col>
             </el-form-item></el-col>
             <el-col :span="10"><el-form-item label="结业日期" prop="finish_date">
-                <el-col :span="20"><el-date-picker placeholder="請輸入" v-model="form.finish_date"></el-date-picker></el-col>
+                <el-col :span="20"><el-date-picker placeholder="請輸入" v-model="form.finish_date" @change="handlerFinishData"></el-date-picker></el-col>
             </el-form-item></el-col>
          </el-row>
 
@@ -54,7 +56,10 @@
                 <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.investment" :maxlength="20" /></el-col>
             </el-form-item></el-col>
             <el-col :span="10"><el-form-item label="门店状态" prop="status">
-                <el-col :span="20"><el-input placeholder="請輸入" v-model="form.status" readonly /></el-col>
+                <el-col :span="20"><el-select placeholder="請輸入" v-model="form.status" value="" disabled>
+                    <el-option v-for="item in optStatus" :key="item.value" :label="item.label" :value="item.value">
+                    </el-option>
+                </el-select></el-col>
             </el-form-item></el-col>
          </el-row>
         <div style="padding: 20px;"><h3>面积信息</h3> <hr /></div>
@@ -108,16 +113,27 @@
 <script>
 import MyHead from '@/components/MyHeader/index'
 import MySelect from '@/components/MySelect/index'
+import { allOrganization } from '@/api/infrastructure/organization'
 import { create,update,search } from '@/api/infrastructure/store'
+const formConfig = [
+    {label: '门店编码',key: 'id',valid: 'required'},
+    {label: '门店全称',key: 'name',valid: 'required'},
+    {label: '门店简称',key: 'short_name',valid: 'required'},
+    {label: '门店编码',key: 'type',valid: 'required'},
+    {label: '门店编码',key: 'dept_id',valid: 'required'},
+]
+
  export default {
     components: {MyHead,MySelect},
     data() {
         return {
             /*--- form data ---*/
-            form: { ids:'',name:'',short_name:'',type:'',property:'',prepare_date:'',open_date:'',finish_date:'',address:'',investment:'',
+            form: { 
+                id:'',name:'',short_name:'',type:'',dept_id:'',property:'',prepare_date:'',open_date:'',finish_date:'',address:'',investment:'',
                 total_area:'',actual_area:'',leaseholder:'',start_lease_at:'',end_lease_at:'',lease_price:'',estate_price:'',
                 month_rent:'',month_rent:'',creator_name:'',created_at:'',province_id:'',city_id:'',district_id:''
             },
+            preform: [],
             rules: {},
             formLoading: false,
             buttonLoading: false,
@@ -125,7 +141,9 @@ import { create,update,search } from '@/api/infrastructure/store'
             title: '',
             data_rigin: '', // 路由门店Id
             optType: [{label: '社区店',value: 1},{label: '商圈店',value: 2}], // 禁用在项里加disabled属性
-            optProperty:  [{label: '直营',value: 1},{label: '加盟',value: 2},{label: '合作',value: 3}]
+            optProperty:  [{label: '直营',value: 1},{label: '加盟',value: 2},{label: '合作',value: 3}],
+            optStatus: [{label: '筹备中',value: 1},{label: '已开业',value:2},{label: "已结业",value: 3}],
+            optDept: []
         }
     },
     methods: {
@@ -144,12 +162,14 @@ import { create,update,search } from '@/api/infrastructure/store'
         /*--- 表单逻辑 ---*/
         onSubmit(refName) {
             // this.$refs[refName].validate((valid) => { if (valid) { console.log("valid",valid); }else{ console.log("valid",valid); }})
-            const params = this.form
+            let params = this.form;
             this.buttonLoading = true
-            create(params).then(res => {
-                if(res.status === 200) this.$message.success('操作成功！') 
+            var submit = this.data_rigin ? update : create
+            submit(params).then(res => {
+                if(res.status === 200) { this.$message.success('操作成功！') }
+                else { this.$message.error('操作失败！请联系管理员:'+ res.msg) }
             }).catch(err => {
-                this.$message.error('操作失败！请联系管理员')
+                this.$message.error('请求发送失败！请联系管理员')
                 throw new Error(err)
             }).finally(() => {
                 this.buttonLoading = false
@@ -168,6 +188,11 @@ import { create,update,search } from '@/api/infrastructure/store'
         onOptionClick(e,v){
             console.log('onOptionClick:',e,v);
         },
+        getDataOptDept() {
+            allOrganization().then(res => {
+                this.optDept = res.data
+            })
+        },
         getDataForm(id) {
             this.formLoading = true
             search({id}).then(res => {
@@ -178,13 +203,30 @@ import { create,update,search } from '@/api/infrastructure/store'
                 this.formLoading = false
             })
         },
+        handlerBeginData(val) {
+            if(val) {
+                this.form.finish_date ? this.form.status = 3 :this.form.status = 2 
+            } else {
+               this.form.finish_date ? this.form.status = 3 :this.form.status = 1
+            }
+        },
+        handlerFinishData(val) {
+            if(val) { 
+                this.form.status = 3
+            } else {
+                this.form.open_date ? this.form.status = 2 :this.form.status = 1 
+            }
+        },
         /*--- 公共逻辑 ---*/
         initComponet(){
+            this.getDataOptDept();
             if (this.data_rigin) this.form.id = this.data_rigin
             // console.log("initComponet",this.data_rigin,this.form);
         },
-        selectRender(refNames) {
-            return this.$createElement('<div>',{   attrs: { id: 'foo'},style: {width: '1000px',background: 'red'}},[],'render','.page-modify',this)
+        preFormRules(refNames) {
+            // 校验配置与逻辑 按时不做
+            // let obj = Object.assign({},this.form)  // 一级属性深拷贝，二级属性浅拷贝，相同属性后盖前
+            // let preObj = [];
         }
     },
     watch: {
@@ -197,15 +239,18 @@ import { create,update,search } from '@/api/infrastructure/store'
             immediate: true
         }
     },
+    beforeCreate() {
+        console.log("beforeCreate:",this);
+    },
     created() {
         // console.log("created:",this);
         this.initComponet()
         if (this.data_rigin) this.getDataForm(this.data_rigin)
     },
-    mounted(){
+    mounted() {
         // console.log("mounted:",this);
     },
-    updated(){
+    updated() {
         // console.log("updated:",this);
     }
  }
