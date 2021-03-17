@@ -1,6 +1,15 @@
 <template>
   <div class="app-user">
-    <div class="app-container" style="display: flex; flex-direction: column; width: 100%;">
+    <div class="tree-block" style="margin-top: 20px;">
+      <el-tag type="info" style="width: 100%; margin-bottom: 10px;">组织架构</el-tag>
+      <el-input placeholder="输入关键字进行过滤" v-model="filterText"></el-input>
+      <el-tree class="filter-tree" v-loading="treeLoading" :data="tree" :props="defaultProps" 
+      :filter-node-method="filterNode" @check="onNodeCheck" accordion
+       ref="tree" node-key="id" show-checkbox default-expand-all empty-text="暂无数据">
+      </el-tree>
+    </div>
+
+    <div class="app-container" style="display: flex; flex-direction: column; width: 90%;">
       <div class="form-block">
         <el-form inline :model="form" ref="searchForm">
           <el-form-item><el-input placeholder="门店名称" v-model="form.name" /></el-form-item>
@@ -34,13 +43,14 @@
           </el-form-item>
         </el-form>
       </div>
+
       <div class="table-block">
         <el-table v-loading='listLoading' element-loading-text='Loading' :data='list'
           border fit stripe size='medium' >
           <div slot='empty'><span>暂无数据</span>&nbsp;&nbsp;<el-button type='text' @click='initTable'>初始化列表</el-button></div>
-          <!-- <el-table-column label="ID">
+          <el-table-column label="ID">
             <template v-slot="scope">{{scope.row.id}}</template>
-          </el-table-column> -->
+          </el-table-column>
           <el-table-column v-for="item in preList" :key="item.id" :label="item.label"  width="140" align="center">
             <template v-if="item.type === 'status'" v-slot="scope">
               {{scope.row.status === 0 ? '禁用' : '启用' }}
@@ -62,6 +72,7 @@
           </el-table-column>
         </el-table>
       </div>
+
       <div class="pagination-block" style='display: flex; align-items: center; margin-top: 15px;'>
         <el-pagination :current-page='currentPage' :page-size='pageSize' :total='total'
         @size-change='handleSizeChange' @current-change='handleCurrentChange'
@@ -76,10 +87,10 @@
 <script>
 import {allOrganization}  from '@/api/infrastructure/organization'
 import {getUserList, banUser} from '@/api/infrastructure/user'
+import { all,ban } from '@/api/infrastructure/store'
+import { provinces,cities,districts} from '@/api/infrastructure/range'
 import {vueDebounce} from '@/utils/index'
-import addUser from './addUser.vue'
 export default {
-  components: { addUser },
 // 员工管理
   data() {
     return {
@@ -91,29 +102,43 @@ export default {
       defaultProps: {
         id: "id",
         children: 'child',
-        label: 'name'
+        label: 'name',
+        disabled: 'disabled'
       },
-      /*--- search form ---*/
-      form: {
-        name: '',
-        status: ''
-      },
-      /*--- table data && pagination---*/
+      /* search form */
+      form: {name: '',type:'',start_at:'',province_id:'',city_id:'',district_id:''},
+      preform: [{label: '', key: '', type: '', childs: false}],
+      role: [],
+      formLoading: true,
+      optionsType: [],
+      optionsProvince: [],
+      optionsCity: [],
+      optionsDistrict: [],
+      province_id: '',
+      city_id: '',
+      /* table data */
       list: [],
+      preList: [{label: '', key: '', type: ''}],
       listLoading: true,
+      /* pagination */
       total: 0,
       pageSize: 20,
       currentPage: 1,
-      /*--- flag data ---*/
-      pageChange: false,
-      /*--- other data ---*/
-      typeChange: '',
-      userId: ''
+      /* flag data */
+      /* other data */
     }
   },
   watch: {
     filterText(val) {
-      this.$refs.tree.filter(val)
+      this.$refs['tree'].filter(val)
+    },
+    province_id: function (newVal) {
+      console.log("province_id",newVal);
+      if (newVal) { this.getCity(newVal) }
+    },
+    city_id: function(newVal) {
+      console.log("city_id",newVal);
+      if (newVal) { this.getDistrict(this.city_id) }
     }
   },
   methods: {
@@ -125,8 +150,16 @@ export default {
       return res
     },
     nodeClick(data,node,event) {
-      this.dept_id = data.id
-      this.filterText = data.name
+      console.log("nodeClick",data);
+    },
+    onNodeCheck(current,node) {
+      const check_nodes = this.$refs.tree.getCheckedNodes()
+      const check_id = check_nodes.find((item) => {
+       return item.id === current.id
+      })
+      this.dept_id = check_id || ''
+      this.filterText = current.name
+      console.log("onNodeCheck","current",current,"node",node,check_nodes);
     },
     fetchTree() {
       this.treeLoading = true
@@ -242,10 +275,11 @@ export default {
     },
     getSearchFeild() {
       // 获取fetchData参数，缺什么加什么
-      var {currentPage,pageSize,form} = this
+      var {currentPage,pageSize,form,dept_id} = this
       return {
         page: currentPage,
         size: pageSize,
+        dept_id: dept_id,
         name: form.name,
         type: form.type,
         start_at: form.start_at ,
@@ -303,15 +337,31 @@ export default {
     },
   },
   created() {
-    var option = this.getSearchFeild()
-    this.fetchData(option)
+    this.initComponet()
     this.fetchTree()
+    this.fetchDataTable(this.getSearchFeild())
   },
-  destroyed(){
-    vueDebounce = null
+  mounted(){
+      // console.log("index mounted:",this);
+  },
+  updated(){
+      // console.log("index updated:",this);
+  },
+  beforeDestroy() {
+    // console.log('index beforeDestroy');
+  },
+  destroyed() {
+    // console.log("index destroyed");
   }
 }
 </script>
 <style scoped>
+.app-user {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
 </style>
 

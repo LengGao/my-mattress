@@ -211,29 +211,6 @@ export const constantRoutes = [
       }
     ]
   },
-
-    {
-    path: '/order',
-    component: Layout,
-    redirect: '/order/orderInquiry',
-    name: 'order',
-    meta: { title: '订单管理', icon: 'el-icon-s-help' },
-    children: [
-      {
-        path: 'orderInquiry',
-        name: 'orderInquiry',
-        component: () => import('@/views/order/orderInquiry/index'),
-        meta: { title: '订单查询', icon: 'link' }
-      },
-      {
-        path: 'orderProcessingFlow',
-        name: 'orderProcessingFlow',
-        component: () => import('@/views/order/orderProcessingFlow/index'),
-        meta: { title: '订单处理流程', icon: 'nested' }
-      }
-    ]
-  },
-
   {
     path: '/order',
     component: Layout,
