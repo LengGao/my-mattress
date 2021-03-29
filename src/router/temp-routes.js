@@ -33,6 +33,30 @@ const tempRoutes = [
         }
     },
     {
+        parentName: 'infrastructure',
+        route: {
+        path: 'organization/modify',
+        component: () => import('@/views/infrastructure/organization/modify'),
+        meta: { title: '操作页'}
+        }
+    },
+    {
+        parentName: 'infrastructure',
+        route: {
+        path: 'range/modify',
+        component: () => import('@/views/infrastructure/range/modify'),
+        meta: { title: '操作页'}
+        }
+    },
+    {
+        parentName: 'infrastructure',
+        route: {
+        path: 'dataDictionary/modify',
+        component: () => import('@/views/infrastructure/dataDictionary/modify'),
+        meta: { title: '操作页'}
+        }
+    },
+    {
         parentName: 'commodity',
         route: {
         path: 'attribute/modify',

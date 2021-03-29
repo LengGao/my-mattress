@@ -101,8 +101,8 @@
 
          <el-row type="flex" justify="center">
             <el-form-item style="margin-top: 20px;">
-                <el-button type="primary" @click="onSubmit('form')" :loading="buttonLoading">提交</el-button>
-                <el-button type="warning" @click="onReset('form')">重置</el-button>
+                <el-button type="primary" @click="onSubmit('form')" :loading="buttonLoading" :disabled="type === 'detail'">提交</el-button>
+                <el-button type="warning" @click="onReset('form')" :disabled="type === 'detail'">重置</el-button>
                 <el-button type="info" @click="onCancel">取消</el-button> 
             </el-form-item>
          </el-row>
@@ -113,8 +113,8 @@
 <script>
 import MyHead from '@/components/MyHeader/index'
 import MySelect from '@/components/MySelect/index'
-import { allOrganization } from '@/api/infrastructure/organization'
-import { create,update,search } from '@/api/infrastructure/store'
+import { all as allOrganization } from '@/api/infrastructure/organization'
+import { create,update,search } from '@/api/infrastructure/user'
 const formConfig = [
     {label: '门店编码',key: 'id',valid: 'required'},
     {label: '门店全称',key: 'name',valid: 'required'},
@@ -135,24 +135,25 @@ const formConfig = [
             },
             preform: [],
             rules: {},
+            optType: [{label: '社区店',value: 1},{label: '商圈店',value: 2}], // 禁用在项里加disabled属性
+            optProperty:  [{label: '直营',value: 1},{label: '加盟',value: 2},{label: '合作',value: 3}],
+            optStatus: [{label: '筹备中',value: 1},{label: '已开业',value:2},{label: "已结业",value: 3}],
+            optDept: [],
             formLoading: false,
             buttonLoading: false,
             /*--- other data ---*/
             title: '',
             data_rigin: '', // 路由门店Id
-            optType: [{label: '社区店',value: 1},{label: '商圈店',value: 2}], // 禁用在项里加disabled属性
-            optProperty:  [{label: '直营',value: 1},{label: '加盟',value: 2},{label: '合作',value: 3}],
-            optStatus: [{label: '筹备中',value: 1},{label: '已开业',value:2},{label: "已结业",value: 3}],
-            optDept: []
+            type: '', //操作类型
         }
     },
     methods: {
         /*--- header逻辑 ---*/
         onSetTitle (type) {
             switch(type) {
-                case 'edit': this.title = '编辑门店'; break;
-                case 'add': this.title = '添加门店'; break;
-                case 'detail': this.title = '门店详情'; break; 
+                case 'edit': this.title = '编辑员工信息'; break;
+                case 'add': this.title = '添加员工信息'; break;
+                case 'detail': this.title = '员工信息详情'; break; 
                 default: ; break;
             }
         },
@@ -189,9 +190,7 @@ const formConfig = [
             console.log('onOptionClick:',e,v);
         },
         getDataOptDept() {
-            allOrganization().then(res => {
-                this.optDept = res.data
-            })
+            allOrganization().then(res => { this.optDept = res.data })
         },
         getDataForm(id) {
             this.formLoading = true
@@ -218,11 +217,6 @@ const formConfig = [
             }
         },
         /*--- 公共逻辑 ---*/
-        initComponet(){
-            this.getDataOptDept();
-            if (this.data_rigin) this.form.id = this.data_rigin
-            // console.log("initComponet",this.data_rigin,this.form);
-        },
         preFormRules(refNames) {
             // 校验配置与逻辑 按时不做
             // let obj = Object.assign({},this.form)  // 一级属性深拷贝，二级属性浅拷贝，相同属性后盖前
@@ -232,9 +226,10 @@ const formConfig = [
     watch: {
         $route: {
             handler (to,from) {
-                // console.log("route",to.query);
-                this.onSetTitle(to.query.type)
+                // console.log("route",to.query)
                 this.data_rigin = to.query.id ? to.query.id : ''
+                this.type = to.query.type
+                this.onSetTitle(to.query.type)
             },
             immediate: true
         }
@@ -244,8 +239,8 @@ const formConfig = [
     },
     created() {
         // console.log("created:",this);
-        this.initComponet()
-        if (this.data_rigin) this.getDataForm(this.data_rigin)
+        this.getDataOptDept();
+        if (this.data_rigin) {  this.form.id = this.data_rigin; this.getDataForm(this.data_rigin) }
     },
     mounted() {
         // console.log("mounted:",this);

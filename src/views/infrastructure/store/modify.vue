@@ -18,7 +18,7 @@
                 <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.short_name" :maxlength="20" /></el-col>
             </el-form-item></el-col>
             <el-col :span="10"><el-form-item label="门店类型" prop="type">
-                <el-col :span="20"><MySelect placeholder="請輸入" v-model="form.type" :data="optType" @change="onChange" clea> </MySelect></el-col>
+                <el-col :span="20"><MySelect placeholder="請輸入" v-model="form.type" :data="optType" @change="onChange" clear> </MySelect></el-col>
             </el-form-item></el-col>
          </el-row>
 
@@ -113,7 +113,7 @@
 <script>
 import MyHead from '@/components/MyHeader/index'
 import MySelect from '@/components/MySelect/index'
-import { allOrganization } from '@/api/infrastructure/organization'
+import { all as allOrganization } from '@/api/infrastructure/organization'
 import { create,update,search } from '@/api/infrastructure/store'
 const formConfig = [
     {label: '门店编码',key: 'id',valid: 'required'},

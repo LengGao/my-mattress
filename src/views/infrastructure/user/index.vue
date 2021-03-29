@@ -12,28 +12,10 @@
     <div class="app-container" style="display: flex; flex-direction: column; width: 90%;">
       <div class="form-block">
         <el-form inline :model="form" ref="searchForm">
-          <el-form-item><el-input placeholder="门店名称" v-model="form.name" /></el-form-item>
-            <el-form-item>
-            <el-select v-model="form.type" placeholder="门店类型">
-              <div v-if="optionsType.length > 0"><el-option v-for="(item,index) in optionsType" :key="index" :label="item.label" :value="item.val"></el-option></div>
-            </el-select>
-          </el-form-item>
+          <el-form-item><el-input placeholder="员工姓名" v-model="form.status" /></el-form-item>
           <el-form-item>
-            <el-date-picker placeholder="创建时间" type="date" v-model="form.start_at" value-format="yyyy-MM-dd"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="省" v-model.number="form.province_id" @change="handlerRegion('省',form.province_id)" clearable>
-             <el-option v-for="(item,index) in optionsProvince" :key="index" :label="item.name" :value="item.id"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="省" v-model.number="form.city_id" @change="handlerRegion('市',form.city_id)" clearable>
-              <el-option v-for="(item,index) in optionsCity" :key="index" :label="item.name" :value="item.id"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="区" v-model.number="form.district_id" @change="handlerRegion('区',form.district_id)" clearable>
-              <el-option v-for="(item,index) in optionsDistrict" :key="index" :label="item.name" :value="item.id"></el-option>
+            <el-select v-model="form.type" placeholder="状态">
+              <el-option v-for="(item,index) in optionsType" :key="index" :label="item.label" :value="item.val"></el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -64,10 +46,10 @@
           </el-table-column>
           <el-table-column label='操作' align='center' min-width="200px">
             <template slot-scope='scope'>
+              <el-button type='text' @click='handlerDetail(scope.$index,scope.row)'>详情</el-button>
               <el-button type='text' @click='handlerEdit(scope.$index,scope.row)'>编辑</el-button>
               <el-button type='text' @click='banDebouce(scope.$index,scope.row)'>{{scope.row.status === 1 ? '禁用' : ' 启用'}}</el-button>
-              <el-button type="text" @click="handlerMember(scope.$index,scope.row)">查看会员</el-button>
-              <el-button type="text" @click="handlerDetail(scope.$index,scope.row)">查看订单</el-button>
+              <el-button type="text" @click="handlerReset(scope.$index,scope.row)">重置密码</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -85,26 +67,32 @@
 </template>
 
 <script>
-import {allOrganization}  from '@/api/infrastructure/organization'
-import {getUserList, banUser} from '@/api/infrastructure/user'
-import { all,ban } from '@/api/infrastructure/store'
-import { provinces,cities,districts} from '@/api/infrastructure/range'
+  // 员工管理
+import { all as allOrganization }  from '@/api/infrastructure/organization'
+import { all,ban,reset } from '@/api/infrastructure//user'
 import {vueDebounce} from '@/utils/index'
+
+const tableConfig = [
+  {label: '员工编号', key: 'id', type: ''},
+  {label: '员工姓名', key: 'name', type: ''},
+  {label: '手机号', key: 'phone', type: ''},
+  {label: '账号', key: 'account', type: ''},
+  {label: '部门', key: 'dept', type: 'date'},
+  {label: '橘色', key: 'role_name', type: ''},
+  {label: '创建人', key: 'creator_name', type: ''},
+  {label: '状态', key: 'status', type: 'status'},
+  {label: '创建时间', key: 'created_at', type: 'date'}
+]
+
 export default {
-// 员工管理
   data() {
     return {
-      /*--- tree data ---*/
+      /* tree data */
       filterText: '',  // 过滤字符
       dept_id: '', // 部门ID
       tree: [], // 节点树
       treeLoading: true ,
-      defaultProps: {
-        id: "id",
-        children: 'child',
-        label: 'name',
-        disabled: 'disabled'
-      },
+      defaultProps: {id: "id", children: 'child', label: 'name', disabled: 'disabled'},
       /* search form */
       form: {name: '',type:'',start_at:'',province_id:'',city_id:'',district_id:''},
       preform: [{label: '', key: '', type: '', childs: false}],
@@ -126,6 +114,8 @@ export default {
       currentPage: 1,
       /* flag data */
       /* other data */
+      comfirmMsg: '重置后的新密码将通过短信发送至员工手机上，您确认要为该员工重置密码吗？',
+      resetSuccessMsg: '密码重置成功，请告知员工用新密码登录！',
     }
   },
   watch: {
@@ -161,10 +151,10 @@ export default {
       this.filterText = current.name
       console.log("onNodeCheck","current",current,"node",node,check_nodes);
     },
-    fetchTree() {
+    fetchDataTree() {
       this.treeLoading = true
       allOrganization().then(response => {
-        this.tree = response.data      
+        this.tree = response.data
       }).catch(err => {
           throw new Error('加载失败',err)
       }).finally(() => {
@@ -184,39 +174,6 @@ export default {
     onAdd() {
       this.handlerPageChange('add')
     },
-    handlerRegion(type,region_id) {
-      console.log("type",type,region_id);
-      switch(type) {
-        case '省': 
-          this.province_id = region_id; 
-          if(!region_id) { this.optionsCity = [],this.optionsDistrict = [],this.form.province_id = '',this.form.city_id = '',this.form.district_id = '' }
-        break;
-        case '市': 
-          this.city_id = region_id;
-          if (!this.province_id) { this.$message.error('请先选择省') } 
-          if (!region_id) { this.optionsDistrict = [],this.form.city_id = '',this.form.district_id = '' }
-        break;
-        case '区': 
-          if (!region_id) { this.form.district_id = '' }
-          if (!this.province_id || !this.city_id) { this.$message.error('请先选择省/市') } 
-        break;
-      }
-    },
-    getProvinces(name) {
-      provinces({name}).then(res => {
-        this.optionsProvince = res.data
-      })
-    },
-    getCity(province_id,name) {
-      cities({province_id,name}).then(res => {
-        this.optionsCity = res.data
-      })
-    },
-    getDistrict(city_id,name) {
-      districts({city_id,name}).then(res => {
-        this.optionsDistrict = res.data
-      })
-    },
     /* 表格逻辑 */
     initTable() {
       var option = this.initSearchFeild(this.getSearchFeild())
@@ -228,11 +185,13 @@ export default {
     handlerDetail(index,data) {
       this.handlerPageChange('detail',data.id)
     },
-    handlerMember(index,data) {
-      this.$message.info('功能正在开发。。。')
-    },
-    handlerCopy(index,data) {
-      this.$message.info('功能正在开发。。。')
+    handlerReset(index,data) {
+      this.$confirm({title: '重置密码',type: 'info',showCancelButton: true,message: this.comfirmMsg})
+      .then(comfirm => { 
+        reset({id: data.id})
+        .then(res => this.$confirm({title: '',type: 'success',message: this.resetSuccessMsg}) )
+        .catch(err => this.$message.error('重置失败'+ err)) })
+      .catch(cancel =>  this.$message.info('已取消操作') )
     },
     banDebouce: vueDebounce('handlerBan'),
     handlerBan(index,data){
@@ -271,7 +230,7 @@ export default {
     /* 公共逻辑 */
     handlerPageChange (type,id) {
       console.log("row data:",id);
-      this.$router.push({ path: 'stores/modify', query: {type: type, id: id || ''} })
+      this.$router.push({ path: 'user/modify', query: {type: type, id: id || ''} })
     },
     getSearchFeild() {
       // 获取fetchData参数，缺什么加什么
@@ -281,11 +240,7 @@ export default {
         size: pageSize,
         dept_id: dept_id,
         name: form.name,
-        type: form.type,
-        start_at: form.start_at ,
-        province_id: form.province_id,
-        city_id: form.city_id, 
-        district_id: form.district_id
+        status: form.status
       }
     },
     initSearchFeild(data){
@@ -308,37 +263,17 @@ export default {
       // var items = []  // options: Array | 'function'
     },
     pretreatTable() {
-      // 预处理表格数据 
-      let items = [
-        {label: '门店编码', key: 'id', type: ''},
-        {label: '门店全称', key: 'name', type: ''},
-        {label: '门店简称', key: 'short_name', type: ''},
-        {label: '门店类型', key: 'type', type: 'select'},
-        {label: '筹备日期', key: 'prepare_date', type: 'date'},
-        {label: '开业日期', key: 'open_date', type: 'date'},
-        {label: '结业日期', key: 'finish_date', type: 'date'},
-        {label: '状态', key: 'status', type: 'status'},
-        {label: '创建人', key: 'creator_name', type: ''},
-        {label: '创建时间', key: 'created_at', type: 'date'}
-      ]
-      let options = {
-        "type": {0: '',1: '社区店',2: '商圈店',length: 3},
-        "property": {0: '',1: '直营',2: '加盟',3: '合作',length: 4}
-      }
-      items.forEach(item => {
-        if(item.type === 'select') item.options = options[item.key]
-      })
-      return items
+      // 预处理表格数据
+      return tableConfig
     },
     initComponet() {
-      this.optionsType = [{label: '社区店',val: 1},{label: '商圈店',val: 2}]
-      this.getProvinces()
+      this.optionsType = [{label: '禁用',val: 0},{label: '启用',val: 1}]
       this.preList = this.pretreatTable()
     },
   },
   created() {
     this.initComponet()
-    this.fetchTree()
+    this.fetchDataTree()
     this.fetchDataTable(this.getSearchFeild())
   },
   mounted(){

@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 // 组织架构
 
-export function createOrganization(params) {
+export function create(params) {
     return request({
         url: '/admin/department/create',
         method: 'post',
@@ -9,15 +9,19 @@ export function createOrganization(params) {
     })
 }
 
-export function deleteOrganization(id) {
+/**
+ * @param {*} params {id: string}
+ * @returns 
+ */
+export function deleter(params) {
     return request({
         url: '/admin/department/delete',
         method: 'post',
-        params: { id }
+        params
     })
 }
 
-export function updateOrganization(params) {
+export function update(params) {
     return request({
         url: '/admin/department/create',
         method: 'post',
@@ -25,15 +29,14 @@ export function updateOrganization(params) {
     })
 }
 
-export function allOrganization(params) {
+export function all() {
     return request({
         url: '/admin/department/all',
-        method: 'get',
-        params
+        method: 'get'
     })
 }
 
-export function getOrganization(params) {
+export function search(params) {
     return request({
         url: '/admin/department/get',
         method: 'get',
@@ -41,7 +44,7 @@ export function getOrganization(params) {
     })
 }
 
-export function banOrganization(params) {
+export function ban(params) {
     return request({
         url: '/admin/department/change_status',
         method: 'post',

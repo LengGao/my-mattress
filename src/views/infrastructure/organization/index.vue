@@ -1,150 +1,45 @@
 <template>
-  <div class="vorganization">
-    <div class="custom-tree-container" v-show="!showDialog">
-    <el-input v-model="filterText" placeholder="部门名称" style="margin-bottom:30px;" max="100" clearable />
-        <el-tree :props="props" :data="treedata" node-key="id" 
-                  ref="tree" empty-text="暂时没有显示数据" default-expand-all
-                  :filter-node-method="filterNode">
-          <span class="custom-tree-node" slot-scope="{ node, data }">
-            <span :style="data.disabled?'color: red;':''">{{ node.label }}</span>
-            <span>
-              <el-button type="text" size="small"  @click="appendChild(data)">添加子部门</el-button>
-              <el-button type="text" size="small"  @click="appendSiblings(data)">添加同级部门</el-button>
-              <el-button type="text" size="small"  @click="updateNode(data)">编辑</el-button>
-              <el-button type="text" size="small"  @click="removeNode(data)">删除</el-button>
-              <el-button type="text" size="small"  @click="() => disableNode(data)">{{data.disabled?'启用':'禁用'}}</el-button>
-            </span>
+  <div class="app-organization">
+    <div class="app-container">
+    <el-input v-model="filterText" placeholder="部门名称" style="margin-bottom: 30px;" max="100" clearable />
+      <el-tree :props="defaultProps" :data="tree" ref="tree" node-key="id"  
+                default-expand-all v-loading="treeLoading" empty-text="暂时没有显示数据"
+                :filter-node-method="filterNode">
+        <span class="custom-tree-node" slot-scope="{ node, data }">
+          <span :style="data.disabled?'color: red;':'' ">{{ node.label }}</span>
+          <span v-if="data.id === 1">
+            <el-button type="text" size="small"  @click="handleAddChildDepartment(node, data)">添加子部门</el-button>
           </span>
-        </el-tree>
-    </div>
-    <div v-show="showDialog" >
-     <el-header>
-       {{header}} 
-       <i @click="ctrlDialog('')" class="el-icon-circle-close" style="font-size: 28px;"></i>
-     </el-header>
-    <el-form ref="form" :model="form" label-width="120px" label-position="left" class="form">
-        <el-form-item label="组织名称">
-          <el-input v-model="form.name" />
-        </el-form-item>
-        <el-form-item label="父级组织">
-          <el-input v-model="form.region" />
-        </el-form-item>
-        <el-form-item label="组织类型">
-          <el-select v-model="form.date2">
-            <el-option value="1"> 组织类型1</el-option>
-            <el-option value="2"> 组织类型2</el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="排序">
-          <el-input v-model="form.resource" />
-        </el-form-item>
-        <el-form-item label="创建人">
-          <el-input disabled v-model="form.desc" />
-        </el-form-item>
-        <el-form-item label="创建时间">
-          <el-input disabled v-bind:value="form.createDate || createDate()" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" >确定</el-button>
-          <el-button type="warning" @click="ctrlDialog('')">取消</el-button>
-        </el-form-item>
-    </el-form>
+          <span v-else>
+            <el-button type="text" size="small"  @click="handlerAddSiblingDepartmen(node, data)">添加同级部门</el-button>
+            <el-button type="text" size="small"  @click="handleAddChildDepartment(node, data)">添加子部门</el-button>
+            <el-button type="text" size="small"  @click="handlerEdit(node, data)">编辑</el-button>
+            <el-button type="text" size="small"  @click="handlerDelete(node, data)">删除</el-button>
+            <el-button type="text" size="small"  @click="() => banDebouce(node, data)">{{data.disabled?'启用':'禁用'}}</el-button>
+          </span>
+        </span>
+      </el-tree>
     </div>
   </div>
 </template>
 
 <script>
 // 组织架构
-var debounce = function (handle,fn, wait) {
-  var timeout;
-  return function (data) {
-      var repeat = handle.call(this, data)
-                  console.log("debounce",repeat);
-      if (repeat) {
-          clearTimeout(timeout)
-      }
-          timeout = setTimeout(function () {
-          fn.call(this, data)
-          },wait)
-  } 
-}
+import Modify from './modify'
+import{ all, ban, deleter } from '@/api/infrastructure/organization'
+import {vueDebounce} from '@/utils/index'
 
-import { formatTime, parseTime } from "@/utils/index";
 export default {
-
+  components: { Modify },
   data() {
     return {
+      /* tree data */
       filterText: '',
-      treedata: [{
-        id: 1,
-        label: '一级 1',
-        children: [{
-          id: 5,
-          label: '二级 1-1',
-          children: [{
-            id: 3,
-            label: '三级 1-1-1',
-          }, {
-            id: 10,
-            label: '三级 1-1-2'
-          }]
-        }]
-      },{
-        id: 2,
-        label: '二级 2',
-        children: [{
-          id: 6,
-          label: '二级 1-1',
-          children: [{
-            id: 7,
-            label: '三级 1-1-1',
-            disabled: true,
-          }, {
-            id: 11,
-            label: '三级 1-1-2'
-          }]
-        }]
-      }],
-      props: {
-          children: 'children',
-          label: 'label',
-          disabled: 'disabled',
-          isLeaf: 'isLeaf'
-      }, // 节点信息与数据的映射关系指定，id如果没有指定则默认为Id，一次类推
-      cache: [],
-      timeout: null,
-      level: false,
-              gridData: [{
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }],
-        header: '',
-        showDialog: false,
-        form: {
-          name: '',
-          region: '',
-          date1: '',
-          date2: '',
-          delivery: false,
-          type: [],
-          resource: '',
-          desc: ''
-        },
-        formLabelWidth: '120px',
-        dateNow: ''
+      dept_id: '',
+      tree: [{id: '', name: '', parent_id: '', child: [{id: '', label: '', child: [] }] }],
+      treeLoading: true,
+      defaultProps: {children: 'child', label: 'name', disabled: 'disabled', isLeaf: 'isLeaf'}, // 节点信息与数据的映射关系指定，id如果没有指定则默认为Id，一次类推
+      /* flag data */
     }
   },
   watch: {
@@ -153,51 +48,68 @@ export default {
     }
   },
   methods: {
-    createDate() {
-      return parseTime(new Date(), '{y}-{m}-{d} {h}:{i}:{s}')
-      
-    },
-    ctrlDialog(header) {
-      this.header = header
-      this.showDialog = !this.showDialog
-    },
+    /* 树控件逻辑 */
     filterNode(value, data) {
-      if (!value) return true
-      return data.label.indexOf(value) !== -1
+      if (!value) { this.dept_id = ''; return true; }
+      var res = data.name.indexOf(value) !== -1
+      if (res) this.dept_id = data.id
+      return res
     },
-    checkedNode (checked) {
-      if (checked ) {
-        return true
-      } else {
-        this.$message({
-          message: '请选择要的部门',
-          type: 'warning'
-        });
-        return false
-      }
+    nodeClick(node, data) {
+      console.log("nodeClick", node, data);
     },
-    appendChild(data, node) {
-      console.log('appendChild:', data, node)
-      this.ctrlDialog("添加子部门")
+    handleAddChildDepartment(node, data) {
+      console.log('添加子部门:', node, data)
+      this.$router.push({ path: 'organization/modify', query: { type: 'addChild', id: data.id || ''} })
     },
-    appendSiblings(data, node) {
-      console.log('appendSiblings:', data, node)
-      this.ctrlDialog("添加同级部门")
+    handlerAddSiblingDepartmen(node, data) {
+      console.log('添加同级部门:', node, data)
+      this.$router.push({ path: 'organization/modify', query: { type: 'addSibling', id: data.id || ''} })
     },
-    updateNode(data, node) {
-      console.log('getNoupdateNodede:', data, node)
-      this.ctrlDialog("编辑")
+    handlerEdit(node, data) {
+      console.log('编辑:', node, data)
+      this.$router.push({ path: 'organization/modify', query: { type: 'edit', id: data.id || ''} })
     },
-    removeNode(data, node) {
-      console.log('removeNode:', data, node)
+    handlerDelete(node, data) {
+      console.log('删除:', node, data)  
+      const parent = node.parent;
+      const children = parent.data.children || parent.data;
+      const index = children.findIndex(d => d.id === data.id);
+      this.$confirm('此操作将永久删除该部门以及子部门, 是否继续?', '提示', {confirmButtonText: '确定', cancelButtonText: '取消',type: 'warning'})
+      .then(() => {
+        children.splice(index, 1);
+        deleter({id: data.id}).then(res => this.$message.success('删除成功!'))
+        .catch(err => this.$message.error(`删除失败!，失败原因:${err.msg}`))        
+      }).catch(() => {
+        this.$message({type: 'info', message: '已取消删除'})         
+      })
     },
-    disableNode(data) {
-        console.log('disableNode:',this,data,data.id)
-        this.$set(data,'disabled',data.disabled)
-        data.disabled = !data.disabled
+    banDebouce: vueDebounce("handlerBan"),
+    handlerBan(node, data){
+      console.log('禁用:',node, data)
+      var id = data.id, status = new Number(!data.id)
+      ban({id,status}).then(res => {
+        this.fetchDataTable(this.getSearchFeild())
+        this.$notify.success({ title: '成功', message: '操作成功' })
+      }).catch(err => {
+        console.log('ban err',err)
+        this.$notify.error({ title: '错误', message: '操作失败'})
+      }).finally(()=>{
+      })
     },
-    debounce() {
+    fetchDataTree() {
+      this.treeLoading = true
+      all().then(response => {
+        this.tree = response.data      
+      }).catch(err => {
+          throw new Error('加载失败',err)
+      }).finally(() => {
+        this.treeLoading = false
+      })
     }
+  },
+  created() {
+    this.fetchDataTree()
   }
 }
 </script>
