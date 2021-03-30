@@ -6,25 +6,7 @@
           <el-form-item><el-input placeholder="门店名称" v-model="form.name" /></el-form-item>
             <el-form-item>
             <el-select v-model="form.type" placeholder="门店类型">
-              <div v-if="optionsType.length > 0"><el-option v-for="(item,index) in optionsType" :key="index" :label="item.label" :value="item.val"></el-option></div>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker placeholder="创建时间" type="date" v-model="form.start_at" value-format="yyyy-MM-dd"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="省" v-model.number="form.province_id" @change="handlerRegion('省',form.province_id)" clearable>
-             <el-option v-for="(item,index) in optionsProvince" :key="index" :label="item.name" :value="item.id"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="省" v-model.number="form.city_id" @change="handlerRegion('市',form.city_id)" clearable>
-              <el-option v-for="(item,index) in optionsCity" :key="index" :label="item.name" :value="item.id"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="区" v-model.number="form.district_id" @change="handlerRegion('区',form.district_id)" clearable>
-              <el-option v-for="(item,index) in optionsDistrict" :key="index" :label="item.name" :value="item.id"></el-option>
+              <el-option v-for="(item,index) in optionStatus" :key="index" :label="item.label" :value="item.value"></el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -35,12 +17,8 @@
         </el-form>
       </div>
       <div class="table-block">
-        <el-table v-loading='listLoading' element-loading-text='Loading' :data='list'
-          border fit stripe size='medium' >
+        <el-table v-loading='listLoading' element-loading-text='Loading' :data='list' border fit stripe size='medium' lazy :load="load" row-key="id" :tree-props="{children: 'child', hasChildren: 'hasChildren'}" >
           <div slot='empty'><span>暂无数据</span>&nbsp;&nbsp;<el-button type='text' @click='initTable'>初始化列表</el-button></div>
-          <!-- <el-table-column label="ID">
-            <template v-slot="scope">{{scope.row.id}}</template>
-          </el-table-column> -->
           <el-table-column v-for="item in preList" :key="item.id" :label="item.label"  width="140" align="center">
             <template v-if="item.type === 'status'" v-slot="scope">
               {{scope.row.status === 0 ? '禁用' : '启用' }}
@@ -55,9 +33,8 @@
           <el-table-column label='操作' align='center' min-width="200px">
             <template slot-scope='scope'>
               <el-button type='text' @click='handlerEdit(scope.$index,scope.row)'>编辑</el-button>
+              <el-button type="text" @click="handlerMember(scope.$index,scope.row)">复制</el-button>
               <el-button type='text' @click='banDebouce(scope.$index,scope.row)'>{{scope.row.status === 1 ? '禁用' : ' 启用'}}</el-button>
-              <el-button type="text" @click="handlerMember(scope.$index,scope.row)">查看会员</el-button>
-              <el-button type="text" @click="handlerDetail(scope.$index,scope.row)">查看订单</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -75,29 +52,25 @@
 
 <script>
 // 区域管理
-import { all,ban } from '@/api/infrastructure/store'
-import { provinces,cities,districts} from '@/api/infrastructure/range'
+import { all, ban, provinces,cities,districts} from '@/api/infrastructure/range'
 import { vueDebounce } from '@/utils/index'
 let tableConfig = [
-  {label: '门店编码', key: 'id', type: ''},
-  {label: '门店全称', key: 'name', type: ''},
-  {label: '门店简称', key: 'short_name', type: ''},
-  {label: '门店类型', key: 'type', type: 'select'},
-  {label: '筹备日期', key: 'prepare_date', type: 'date'},
-  {label: '开业日期', key: 'open_date', type: 'date'},
-  {label: '结业日期', key: 'finish_date', type: 'date'},
-  {label: '状态', key: 'status', type: 'status'},
-  {label: '创建人', key: 'creator_name', type: ''},
-  {label: '创建时间', key: 'created_at', type: 'date'}
+  {label: 'ID', key: 'id', type: ''},
+  {label: '节点', key: 'name', type: ''},
+  {label: '父节点', key: 'parent_name', type: ''},
+  {label: '类型', key: 'type', type: 'select'},
+  {label: '城市级别', key: 'grade', type: ''},
+  {label: '排序', key: 'sort', type: ''},
 ]
 export default {
   data() {
     return {      
       /* search form */
-      form: {name: '',type:'',start_at:'',province_id:'',city_id:'',district_id:''},
+      form: {name: '',status: ''},
       preform: [{label: '', key: '', type: '', childs: false}],
       role: [],
       formLoading: true,
+      optionStatus: [{label: '禁用', value: 0},{label: '启用', value: 1}],
       optionsType: [],
       optionsProvince: [],
       optionsCity: [],
@@ -107,6 +80,7 @@ export default {
       /* table data */
       list: [],
       preList: [{label: '', key: '', type: ''}],
+      recursionList: [], // 递归数组
       listLoading: true,
       /* pagination */
       total: 0,
@@ -114,6 +88,7 @@ export default {
       currentPage: 1,
       /* flag data */
       /* other data */
+      timer: 0,
     }
   },
   watch: {
@@ -202,10 +177,17 @@ export default {
       }).finally(()=>{
       })
     },
+    load(tree, treeNode, resolve) {
+      this.timer = setTimeout(() => {
+        resolve(tree.child)
+        clearTimeout(this.timer)
+      },500)
+    },
     fetchDataTable(option) {
       this.listLoading = true
       all(option).then(response => {
-        this.list = response.data.list
+        let _list = response.data.list
+        this.list =  this.recursionNode(_list)
         this.total = response.data.total
       }).catch(err => {
         throw new Error('表格加载失败',err)
@@ -236,11 +218,7 @@ export default {
         page: currentPage,
         size: pageSize,
         name: form.name,
-        type: form.type,
-        start_at: form.start_at ,
-        province_id: form.province_id,
-        city_id: form.city_id, 
-        district_id: form.district_id
+        status: form.status
       }
     },
     initSearchFeild(data){
@@ -258,6 +236,15 @@ export default {
       }
       return data
     },
+    recursionNode(arr) {
+      arr.forEach(item => {
+        if (item.child.length && item.child.length > 0) {
+          item.hasChildren = true
+          item.child.forEach(ite => ite.child.length && ite.child.length > 0 ? ite.hasChildren = true : '')
+        }
+      })
+      return arr
+    },
     pretreatForm() {
       // 预处理表单数据 暂不做
       // var items = []  // options: Array | 'function'
@@ -265,8 +252,7 @@ export default {
     pretreatTable() {
       // 预处理表格数据 
       let options = {
-        "type": {0: '',1: '社区店',2: '商圈店',length: 3},
-        "property": {0: '',1: '直营',2: '加盟',3: '合作',length: 4}
+        "type": {0: '',1: '省',2: '市',3: '区',length: 4},        
       }
       tableConfig.forEach(item => {
         if(item.type === 'select') item.options = options[item.key]
@@ -291,6 +277,7 @@ export default {
   },
   beforeDestroy() {
     // console.log('index beforeDestroy');
+    clearTimeout(this.timer)
   },
   destroyed() {
     // console.log("index destroyed");
