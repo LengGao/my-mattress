@@ -17,7 +17,7 @@
         </el-form>
       </div>
       <div class="table-block">
-        <el-table v-loading='listLoading' element-loading-text='Loading' :data='list' border fit stripe size='medium' lazy :load="load" row-key="id" :tree-props="{children: 'child', hasChildren: 'hasChildren'}" >
+        <el-table v-loading='listLoading' element-loading-text='Loading' :data='list' border fit stripe size='medium' lazy :load="load" row-key="id" :tree-props='treeProps' >
           <div slot='empty'><span>暂无数据</span>&nbsp;&nbsp;<el-button type='text' @click='initTable'>初始化列表</el-button></div>
           <el-table-column v-for="item in preList" :key="item.id" :label="item.label"  width="140" align="center">
             <template v-if="item.type === 'status'" v-slot="scope">
@@ -33,8 +33,8 @@
           <el-table-column label='操作' align='center' min-width="200px">
             <template slot-scope='scope'>
               <el-button type='text' @click='handlerEdit(scope.$index,scope.row)'>编辑</el-button>
-              <el-button type="text" @click="handlerMember(scope.$index,scope.row)">复制</el-button>
               <el-button type='text' @click='banDebouce(scope.$index,scope.row)'>{{scope.row.status === 1 ? '禁用' : ' 启用'}}</el-button>
+              <el-button type='text' @click='handlerDelete(scope.$index,scope.row)'>编辑</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -52,7 +52,7 @@
 
 <script>
 // 区域管理
-import { all, ban, provinces,cities,districts} from '@/api/infrastructure/range'
+import { all, ban,deleter, childrens, provinces, cities, districts } from '@/api/infrastructure/range'
 import { vueDebounce } from '@/utils/index'
 let tableConfig = [
   {label: 'ID', key: 'id', type: ''},
@@ -80,6 +80,7 @@ export default {
       /* table data */
       list: [],
       preList: [{label: '', key: '', type: ''}],
+      treeProps: {hasChildren: 'child'},
       recursionList: [], // 递归数组
       listLoading: true,
       /* pagination */
@@ -89,16 +90,6 @@ export default {
       /* flag data */
       /* other data */
       timer: 0,
-    }
-  },
-  watch: {
-    province_id: function (newVal) {
-      console.log("province_id",newVal);
-      if (newVal) { this.getCity(newVal) }
-    },
-    city_id: function(newVal) {
-      console.log("city_id",newVal);
-      if (newVal) { this.getDistrict(this.city_id) }
     }
   },
   methods: {
@@ -133,16 +124,19 @@ export default {
         break;
       }
     },
+    // 省
     getProvinces(name) {
       provinces({name}).then(res => {
         this.optionsProvince = res.data
       })
     },
+    // 市
     getCity(province_id,name) {
       cities({province_id,name}).then(res => {
         this.optionsCity = res.data
       })
     },
+    // 区
     getDistrict(city_id,name) {
       districts({city_id,name}).then(res => {
         this.optionsDistrict = res.data
@@ -165,6 +159,15 @@ export default {
     handlerCopy(index,data) {
       this.$message.info('功能正在开发。。。')
     },
+    handlerDelete(index,data) {
+      this.$confirm(`确定要删除${data.name}吗？`,{ type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消',})
+      .then(res => {
+        deleter({id: data.id})
+        .then(res => { this.list.splice(index,1); this.$message.success("删除成功")})
+        .catch(err => this.$message.error(`删除失败${err.msg}`))
+      })
+      .catch(err => this.$message.info('操作已取消'))
+    },
     banDebouce: vueDebounce('handlerBan'),
     handlerBan(index,data){
       var id = data.id, status = new Number(!data.status)
@@ -177,9 +180,10 @@ export default {
       }).finally(()=>{
       })
     },
+    // 异步加载树节点
     load(tree, treeNode, resolve) {
       this.timer = setTimeout(() => {
-        resolve(tree.child)
+        childrens({parent_id: tree.id}).then(res => resolve(res.data)).catch(err => console.log(`子节点加载失败${err.msg}`))
         clearTimeout(this.timer)
       },500)
     },
@@ -187,7 +191,8 @@ export default {
       this.listLoading = true
       all(option).then(response => {
         let _list = response.data.list
-        this.list =  this.recursionNode(_list)
+        // this.list =  this.recursionNode(_list)
+        this.list = _list
         this.total = response.data.total
       }).catch(err => {
         throw new Error('表格加载失败',err)
@@ -208,18 +213,13 @@ export default {
     },
     /* 公共逻辑 */
     handlerPageChange (type,id) {
-      console.log("row data:",id);
-      this.$router.push({ path: 'stores/modify', query: {type: type, id: id || ''} })
+      // console.log("row data:",id); 
+      this.$router.push({ path: 'range/modify', query: {type: type, id: id || ''} })
     },
     getSearchFeild() {
       // 获取fetchData参数，缺什么加什么
       var {currentPage,pageSize,form} = this
-      return {
-        page: currentPage,
-        size: pageSize,
-        name: form.name,
-        status: form.status
-      }
+      return { page: currentPage, size: pageSize, name: form.name, status: form.status }
     },
     initSearchFeild(data){
       // 初始化请求参数
@@ -229,13 +229,14 @@ export default {
         } else if (typeof data[key] === 'object' && data[key] instanceof Array) {
           data[key] = []
         } else if (typeof data[key] === 'object') {
-            data[key] = {}
+          data[key] = {}
         } else {
           data[key] = ''
         }
       }
       return data
     },
+    // 递归赋值是由有子节点标识
     recursionNode(arr) {
       arr.forEach(item => {
         if (item.child.length && item.child.length > 0) {
@@ -251,9 +252,7 @@ export default {
     },
     pretreatTable() {
       // 预处理表格数据 
-      let options = {
-        "type": {0: '',1: '省',2: '市',3: '区',length: 4},        
-      }
+      let options = { "type": {0: '',1: '省',2: '市',3: '区',length: 4} }
       tableConfig.forEach(item => {
         if(item.type === 'select') item.options = options[item.key]
       })
