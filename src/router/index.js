@@ -53,7 +53,6 @@ export const constantRoutes = [
   {
     path: '/',
     component: Layout,
-    name: 'temp',
     children: [{
       path: 'temp',
       name: 'temp',
@@ -205,9 +204,9 @@ export const constantRoutes = [
     meta: { title: '订单管理', icon: 'el-icon-s-help' },
     children: [
       {
-      path: 'downOrders',
-      name: 'downOrders',
-        component: () => import('@/views/downOrders/downOrders/index'),
+        path: 'downOrders',
+        name: 'downOrders',
+        component: () => import('@/views/order/downOrders/index'),
         meta: { title: '下单', icon: 'dashboard' }
       },
       {
@@ -230,7 +229,6 @@ export const constantRoutes = [
     path: '/member',
     component: Layout,
     redirect: '/member/member',
-    name: 'member',
     meta: { title: '会员管理', icon: 'example' },
     children: [
       {
@@ -264,7 +262,6 @@ export const constantRoutes = [
     path: '/customerService',
     component: Layout,
     redirect: '/customerService/agent',
-    name: 'promotion',
     meta: { title: '客服管理', icon: 'el-icon-s-help' },
     children: [
       {

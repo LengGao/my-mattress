@@ -190,6 +190,9 @@ export default {
     handlerCopy(index,data) {
       this.$message.info('功能正在开发。。。')
     },
+    handlerDelete(index,data) {
+      this.$message.info('功能正在开发。。。')
+    },
     banDebouce: vueDebounce('handlerBan'),
     handlerBan(index,data){
       var id = data.id, status = new Number(!data.status)

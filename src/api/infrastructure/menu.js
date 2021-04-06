@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-export function createMenu(params) {
+export function create(params) {
     return request({
         url: '/admin/menu/create',
         method: 'post',
@@ -8,7 +8,7 @@ export function createMenu(params) {
     })
 }
 
-export function deleteMenu(id) {
+export function deleter(id) {
     return request({
         url: '/admin/menu/delete',
         method: 'post',
@@ -16,7 +16,7 @@ export function deleteMenu(id) {
     })
 }
 
-export function updateMenu(params) {
+export function update(params) {
     return request({
         url: '/admin/menu/update',
         method: 'post',
@@ -24,7 +24,7 @@ export function updateMenu(params) {
     })
 }
 
-export function getMenu(id) {
+export function search(id) {
     return request({
         url: '/admin/menu/get',
         method: 'get',
@@ -32,7 +32,7 @@ export function getMenu(id) {
     })
 }
 
-export function allMenu(params) {
+export function all(params) {
     return request({
         url: '/admin/menu/all_permissions',
         method: 'get',
@@ -40,7 +40,7 @@ export function allMenu(params) {
     })
 }
 
-export function banMenu(params) {
+export function ban(params) {
     return request({
         url: '/admin/menu/change_status',
         method: 'post',
