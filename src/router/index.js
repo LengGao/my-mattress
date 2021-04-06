@@ -51,28 +51,14 @@ export const constantRoutes = [
   },
 
   {
-    path: '/temp',
+    path: '/',
     component: Layout,
-    redirect: '/temp',
     name: 'temp',
     children: [{
       path: 'temp',
       name: 'temp',
       component: () => import('@/views/temp/temp/index'),
       meta: { title: '测试页面', icon: 'dashboard' }
-    }]
-  },
-
-  {
-    path: '/',
-    component: Layout,
-    redirect: '/downOrders',
-    name: 'downOrders',
-    children: [{
-      path: 'downOrders',
-      name: 'downOrders',
-      component: () => import('@/views/downOrders/downOrders/index'),
-      meta: { title: '客服下单', icon: 'dashboard' }
     }]
   },
 
@@ -162,27 +148,27 @@ export const constantRoutes = [
     ]
   },
 
-  {
-    path: '/store',
-    component: Layout,
-    redirect: '/store/QRcode',
-    name: 'store',
-    meta: { title: '门店管理', icon: 'example' },
-    children: [
-      {
-        path: 'QRcode',
-        name: 'QRcode',
-        component: () => import('@/views/store/QRcode/index'),
-        meta: { title: '二维码管理', icon: 'example' }
-      },
-      {
-        path: 'equipment',
-        name: 'equipment',
-        component: () => import('@/views/store/equipment/index'),
-        meta: { title: '设备管理', icon: 'example' }
-      }
-    ]
-  },
+  // {
+  //   path: '/store',
+  //   component: Layout,
+  //   redirect: '/store/QRcode',
+  //   name: 'store',
+  //   meta: { title: '门店管理', icon: 'example' },
+  //   children: [
+  //     {
+  //       path: 'QRcode',
+  //       name: 'QRcode',
+  //       component: () => import('@/views/store/QRcode/index'),
+  //       meta: { title: '二维码管理', icon: 'example' }
+  //     },
+  //     {
+  //       path: 'equipment',
+  //       name: 'equipment',
+  //       component: () => import('@/views/store/equipment/index'),
+  //       meta: { title: '设备管理', icon: 'example' }
+  //     }
+  //   ]
+  // },
 
   {
     path: '/promotion',
@@ -218,6 +204,12 @@ export const constantRoutes = [
     name: 'Example',
     meta: { title: '订单管理', icon: 'el-icon-s-help' },
     children: [
+      {
+      path: 'downOrders',
+      name: 'downOrders',
+        component: () => import('@/views/downOrders/downOrders/index'),
+        meta: { title: '下单', icon: 'dashboard' }
+      },
       {
         path: 'orderInquiry',
         name: 'orderInquiry',

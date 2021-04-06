@@ -1,5 +1,6 @@
 
 const tempRoutes = [
+    // 设置
     {
         parentName: 'infrastructure',
         route: {
@@ -56,6 +57,7 @@ const tempRoutes = [
         meta: { title: '操作页'}
         }
     },
+    // 产品
     {
         parentName: 'commodity',
         route: {
@@ -88,6 +90,7 @@ const tempRoutes = [
         meta: { title: '操作页'}
         }
     },
+    // 会员管理
     {
         parentName: 'member',
         route: {
@@ -96,6 +99,31 @@ const tempRoutes = [
         meta: { title: '操作页'}
         }
     },
+    {
+        parentName: 'member',
+        route: {
+        path: 'arrivalrecord/modify',
+        component: () => import('@/views/member/member/modify'),
+        meta: { title: '操作页'}
+        }
+    },
+    {
+        parentName: 'member',
+        route: {
+        path: 'orderrecord/modify',
+        component: () => import('@/views/member/member/modify'),
+        meta: { title: '操作页'}
+        }
+    },
+    {
+        parentName: 'member',
+        route: {
+        path: 'addressinfo/modify',
+        component: () => import('@/views/member/member/modify'),
+        meta: { title: '操作页'}
+        }
+    },
+    // 营销
     {
         parentName: 'promotion',
         route: {
@@ -120,6 +148,48 @@ const tempRoutes = [
         meta: { title: '操作页'}
         }
     },
+    // 订单管理 
+    {
+        parentName: 'order',
+        route: {
+        path: 'downOrders/modify',
+        component: () => import('@/views/order/downOrders/modify'),
+        meta: { title: '操作页'}
+        }
+    },    
+    {
+        parentName: 'order',
+        route: {
+        path: 'orderInquiry/modify',
+        component: () => import('@/views/order/orderInquiry/modify'),
+        meta: { title: '操作页'}
+        }
+    },
+    {
+        parentName: 'order',
+        route: {
+        path: 'orderProcessingFlow/modify',
+        component: () => import('@/views/order/orderProcessingFlow/modify'),
+        meta: { title: '操作页'}
+        }
+    },
+    // 客服
+    {
+        parentName: 'customerService',
+        route: {
+        path: 'agent/modify',
+        component: () => import('@/views/customerService/agent/modify'),
+        meta: { title: '操作页'}
+        }
+    },    
+    {
+        parentName: 'customerService',
+        route: {
+        path: 'agentallocation/modify',
+        component: () => import('@/views/customerService/agentallocation/modify'),
+        meta: { title: '操作页'}
+        }
+    },    
 
 ]
 

@@ -4,7 +4,7 @@ import request from '@/utils/request'
  * 创建角色
  * @param {object} params name,sort排序(number)
  */
-export function createRole(params) {
+export function create(params) {
   return request({
     url: '/admin/role/create',
     method: 'post',
@@ -16,11 +16,11 @@ export function createRole(params) {
  * 删除角色
  * @param {object} params  id
  */
-export function deleteRole(id) {
+export function deleter(params) {
   return request({
     url: '/admin/role/delete',
     method: 'post',
-    params: { id }
+    params
   })
 }
 
@@ -28,7 +28,7 @@ export function deleteRole(id) {
  * 修改角色
  * @param {object} params id,name,sort
  */
-export function updateRole(params) {
+export function update(params) {
   return request({
     url: '/admin/role/update',
     method: 'post',
@@ -40,11 +40,11 @@ export function updateRole(params) {
  * 查询角色
  * @param {object} params name
  */
-export function searchRole(name) {
+export function searchRole(params) {
   return request({
     url: '/admin/role/paginate',
     method: 'get',
-    params: { name }
+    params
   })
 }
 
@@ -52,11 +52,11 @@ export function searchRole(name) {
  * 查询角色详情
  * @param {object} params 
  */
-export function getRole(id) {
+export function search(params) {
   return request({
     url: '/admin/role/get',
     method: 'get',
-    params: { id }
+    params
   })
 }
 
@@ -64,7 +64,7 @@ export function getRole(id) {
  * 创建角色
  * @param {object} params page=1,size=20,role_id,name,status
  */
-export function getRoleList(params) {
+export function all(params) {
   return request({
     url: '/admin/role/users',
     method: 'get',

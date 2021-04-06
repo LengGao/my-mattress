@@ -34,7 +34,7 @@
             <template slot-scope='scope'>
               <el-button type='text' @click='handlerEdit(scope.$index,scope.row)'>编辑</el-button>
               <el-button type='text' @click='banDebouce(scope.$index,scope.row)'>{{scope.row.status === 1 ? '禁用' : ' 启用'}}</el-button>
-              <el-button type='text' @click='handlerDelete(scope.$index,scope.row)'>编辑</el-button>
+              <el-button type='text' @click='handlerDelete(scope.$index,scope.row)'>删除</el-button>
             </template>
           </el-table-column>
         </el-table>
