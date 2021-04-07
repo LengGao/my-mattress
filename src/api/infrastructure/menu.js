@@ -24,11 +24,11 @@ export function update(params) {
     })
 }
 
-export function search(id) {
+export function search(params) {
     return request({
         url: '/admin/menu/get',
         method: 'get',
-        params: { id }
+        params
     })
 }
 

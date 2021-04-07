@@ -16,22 +16,20 @@
         <el-row type="flex" justify="space-around" :gutter="2">
             <el-col :span="10"><el-form-item label="父级菜单" prop="parent_id">
                 <el-col :span="20">
-                    <el-select placeholder="請輸入" v-model="form.parent_id">
-                        <el-option-group v-for="group in optionParent" :key="'group' + group.id" :label="group.name">
-                            <el-option :label="group.name" :value="group.id"></el-option>
-                            <el-option v-for="item in group.child" :key="item.id" :label="item.name" :value="item.id"></el-option>
-                        </el-option-group>
+                    <el-select placeholder="请输入" v-model="form.parent_id">
+                        <el-option label="顶层" :value="0"></el-option>
+                        <el-option v-for="item in optionParent" :key="item.id" :label="item.name" :value="item.id"></el-option>
                     </el-select>
                 </el-col>
             </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="" prop="页面地址">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.url" :maxlength="20" /></el-col>
+            <el-col :span="10"><el-form-item label="页面地址" prop="页面地址">
+                <el-col :span="20"> <el-input placeholder="请输入" v-model="form.url" :maxlength="20" /></el-col>
             </el-form-item></el-col>
          </el-row>
 
         <el-row type="flex" justify="space-around" :gutter="2">
             <el-col :span="10"><el-form-item label="状态" prop="status">
-                <el-col :span="20"><el-select placeholder="請輸入" v-model="form.status">
+                <el-col :span="20"><el-select placeholder="请输入" v-model="form.status">
                     <el-option v-for="(item, index) in optionStatus" :key="index" :label="item.label" :value="item.value"></el-option>
                 </el-select></el-col>
             </el-form-item></el-col>
@@ -41,28 +39,31 @@
          </el-row>
 
         <el-row type="flex" justify="space-around" :gutter="2">
-            <el-table :data='form.operation' border fit stripe size='medium'>
-                <el-table-column label="编码">
+            <el-table :data='operations' ref="operations" row-key="id" border fit stripe size='medium' @selection-change="handleSelectionChange">
+                <el-table-column align="center" type="selection" :selectable="selectable">
+                </el-table-column>   
+                <el-table-column label="编码" align="center">
                     <template slot-scope="scope">
-                        {{scope.row.code}}
+                        <el-input v-model="scope.row.code"></el-input>
                     </template>
                 </el-table-column>
-
-                <el-table-column label="编码">
+                <el-table-column label="操作" align="center">
                     <template slot-scope="scope">
-                        {{scope.row.name}}
+                        <el-input v-model="scope.row.name"></el-input>
                     </template>
                 </el-table-column>
-
-                <el-table-column label="编码">
+                <el-table-column label="是否使用" align="center">
                     <template slot-scope="scope">
-                        {{scope.row.is_selected}}
+                        <el-switch v-model="scope.row.is_selected" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
                     </template>
                 </el-table-column>
+                <template v-slot:append>
+                    <el-button @click="onAdd(operations)"><i class="el-icon-plus"></i></el-button>
+                    <el-button @click="onDelete(operations)"><i class="el-icon-minus"></i></el-button>
+                </template>
             </el-table>
+
         </el-row>
-
-
 
          <el-row type="flex" justify="center">
             <el-form-item style="margin-top: 20px;">
@@ -77,9 +78,7 @@
 
 <script>
 import MyHead from '@/components/MyHeader/index'
-import MySelect from '@/components/MySelect/index'
-import { allOrganization } from '@/api/infrastructure/organization'
-import { create,update,search } from '@/api/infrastructure/store'
+import {all, create,update,search } from '@/api/infrastructure/menu'
 const formConfig = [
     {label: '门店编码',key: 'id',valid: 'required'},
     {label: '门店全称',key: 'name',valid: 'required'},
@@ -89,22 +88,23 @@ const formConfig = [
 ]
 
  export default {
-    components: {MyHead,MySelect},
+    components: {MyHead},
     data() {
+        
         return {
-            /*--- form data ---*/
-            form: { id:'',name:'',parent_id: '',url:'',status: '',sort: '',operation: [] },
-            preform: [],
-            rules: {},
-            formLoading: false,
-            buttonLoading: false,
-            /*--- other data ---*/
-            title: '',
-            data_rigin: '', // 路由门店Id
-            optType: [{label: '社区店',value: 1},{label: '商圈店',value: 2}], // 禁用在项里加disabled属性
-            optProperty:  [{label: '直营',value: 1},{label: '加盟',value: 2},{label: '合作',value: 3}],
-            optStatus: [{label: '筹备中',value: 1},{label: '已开业',value:2},{label: "已结业",value: 3}],
-            optDept: []
+        /*--- form data ---*/
+        form: { id:'',name:'',parent_id: '',url:'',status: '',sort: '',operation: [] },
+        operations: [],
+        selectOperations: [],
+        preform: [],
+        rules: {},
+        formLoading: false,
+        buttonLoading: false,
+        /*--- other data ---*/
+        title: '',
+        data_rigin: '', // 路由门店Id
+        optionStatus: [{label: '禁用',value: 0},{label: '启用',value: 1}],
+        optionParent: []
         }
     },
     methods: {
@@ -125,7 +125,14 @@ const formConfig = [
             // this.$refs[refName].validate((valid) => { if (valid) { console.log("valid",valid); }else{ console.log("valid",valid); }})
             let params = this.form;
             this.buttonLoading = true
-            var submit = this.data_rigin ? update : create
+            let  submit = this.data_rigin ? update : create
+            let _list = [] 
+            this.operations.filter( item => {
+                if (item.hasOwnProperty('id')) delete item['id']
+                if (item.hasOwnProperty('notNotify')) delete item['notNotify']
+                _list.push(item)
+            })
+            params.operation = JSON.stringify(_list)
             submit(params).then(res => {
                 if(res.status === 200) { this.$message.success('操作成功！') }
                 else { this.$message.error('操作失败！请联系管理员:'+ res.msg) }
@@ -146,12 +153,37 @@ const formConfig = [
         onChange(e,v) {
             console.log('onChange:',e,v,this.form);
         },
-        onOptionClick(e,v){
-            console.log('onOptionClick:',e,v);
+        onAdd() {
+            let id = this.operations.length + 1
+            let obj = {id: id, code: '', name: '', is_selected: false, notNotify: false}
+            this.operations.push(obj)
+        },
+        onDelete() {
+            let _list = this.selectOperations
+            let _operations = this.operations
+            if (_list && _list.length > 0 ) {
+                for(let  i = 0; i < _list.length; i++) {
+                    for (let j = 0; j < _operations.length; j++){
+                        if (_list[i].id === _operations[j].id) {
+                            _operations.splice(j, 1)
+                        }
+                    }
+                }            
+            } else { 
+                this.$message.error('请选择要删除项')
+            }
+            
+        },
+        handleSelectionChange(v1,v2) {
+            console.log(v1, v2);
+            this.selectOperations = v1
+        },
+        selectable(data, index) {
+            return  !data.notNotify ? true : false
         },
         getDataOptDept() {
-            allOrganization().then(res => {
-                this.optDept = res.data
+            all().then(res => {
+                this.optionParent = res.data
             })
         },
         getDataForm(id) {
@@ -159,7 +191,12 @@ const formConfig = [
             search({id}).then(res => {
                 let _operation = JSON.parse(res.data.operation)
                 let _form = res.data
+                _operation.forEach((item,index) => { 
+                    item.id = index + 1
+                    item.notNotify = true
+                })
                 _form.operation = _operation
+                this.operations = _operation
                 this.form = _form             
             }).catch(err => {
                 this.$message.error("加载失败")
@@ -184,7 +221,7 @@ const formConfig = [
         /*--- 公共逻辑 ---*/
         initComponet(){
             this.getDataOptDept();
-            // console.log("initComponet",this.data_rigin,this.form);
+            
         },
         preFormRules(refNames) {
             // 校验配置与逻辑 按时不做
