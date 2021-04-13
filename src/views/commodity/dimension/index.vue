@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import { all,ban } from '@/api/infrastructure/store'
+import { all,ban } from '@/api/commodity/dimension'
 import { provinces,cities,districts} from '@/api/infrastructure/range'
 import { vueDebounce } from '@/utils/index'
 // 门店管理

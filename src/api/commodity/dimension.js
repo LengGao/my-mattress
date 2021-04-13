@@ -1,8 +1,9 @@
 import request from '@/utils/request'
+// 尺寸
 
 export function create (params) {
     return request({
-        url: '/admin/size/paginate',
+        url: '/admin/size/create',
         method: 'get',
         params: params
     })
@@ -10,34 +11,38 @@ export function create (params) {
 
 export function deleter (params) {
     return request({
-        url: '',
-        method: 'get',
+        url: '/admin/size/delete',
+        method: 'POST',
         params: params
     })
 }
 
 export function update (params) {
     return request({
-        url: '',
-        method: 'get',
+        url: '/admin/size/update',
+        method: 'POST',
         params: params
     })
 }
 export function search (params) {
+    return request({
+        url: '/admin/size/get',
+        method: 'get',
+        params: params
+    })
+}
+
+// 分页
+export function all (params) {
     return request({
         url: '/admin/size/paginate',
         method: 'get',
         params: params
     })
 }
+
+// 所有尺寸查询
 export function get (params) {
-    return request({
-        url: '',
-        method: 'get',
-        params: params
-    })
-}
-export function all (params) {
     return request({
         url: '/admin/size/all',
         method: 'get',
@@ -46,8 +51,8 @@ export function all (params) {
 }
 export function ban (params) {
     return request({
-        url: '',
-        method: 'get',
+        url: '/admin/size/change_status',
+        method: 'POST',
         params: params
     })
 }

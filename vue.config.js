@@ -40,8 +40,8 @@ module.exports = {
       }
     },
     // host: '8.136.183.159',
-    port: 8081,
-    // port: port,
+    // port: 8081,
+    port: port,
     open: true,
     overlay: {
       warnings: false,

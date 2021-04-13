@@ -3,7 +3,7 @@
     <div class="tree-block" style="width: 15%; margin-top: 20px;">
       <el-tag type="info" class="info">
           <span> 组织架构</span>
-          <i class="el-icon-circle-plus-outline" style="font-size: 18px;" @click="onAdd"> </i>
+          <i class="el-icon-circle-plus-outline" style="font-size: 18px;" @click="onAddClass"> </i>
         </el-tag>
       <el-input placeholder="输入关键字进行过滤" v-model="filterText"></el-input>
       <el-tree class="filter-tree" v-loading="treeLoading" :data="tree" :props="defaultProps" 
@@ -24,6 +24,7 @@
           <el-form-item>
             <el-button type="primary" @click="onSearch('searchForm')">查询</el-button>
             <el-button type="warning" @click="onReset('searchForm')">重置</el-button>
+            <el-button type="primary" @click="onAdd">添加</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -68,17 +69,14 @@
     <el-dialog
       title="操作页"
       :visible.sync="dialogVisible"
-      width="30%">
-      <span>{{this.formRole.id ? '编辑' : '添加'}}</span>
+      width="30%">                           
+      <span>添加</span>
       <el-form :model="formRole">
-        <el-form-item label="ID">
-          <el-input v-model="formRole.id" disabled></el-input>
+        <el-form-item label="字典分类编号" prop="name">
+          <el-input placeholder="请输入字典分类编号" v-model="formRole.code"></el-input>
         </el-form-item>
-        <el-form-item label="角色名称" prop="name">
-          <el-input placeholder="请输入角色名称" v-model="formRole.name"></el-input>
-        </el-form-item>
-        <el-form-item label="排序" prop="sort">
-          <el-input placeholder="请输入排序" v-model="formRole.sort"></el-input>
+        <el-form-item label="字典分类名称" prop="sort">
+          <el-input placeholder="请输入字典分类名称" v-model="formRole.name"></el-input>
         </el-form-item>
         <el-form-item>        
           <el-button @click="onCancel">取 消</el-button>
@@ -137,7 +135,7 @@ export default {
       /* flag data */
       dialogVisible: false,
       /* other data */
-      formRole: {id: '', name: '', sort: 0},
+      formRole: {name:   '', code: ''},
       comfirmMsg: '重置后的新密码将通过短信发送至员工手机上，您确认要为该员工重置密码吗？',
       resetSuccessMsg: '密码重置成功，请告知员工用新密码登录！',
     }
@@ -260,9 +258,8 @@ export default {
       this.formRole = {id: '', name: '', sort: 0}
     },
     onSubmit() {
-      let submit = this.formRole.id ? update : create
-      let params = this.formRole
-      submit(params).then(res => {
+      let params = {name: this.formRole.name, code: this.formRole.code }
+      creates(params).then(res => {
           if(res.status === 200) { this.$message.success('操作成功！') }
           else { this.$message.error('操作失败！请联系管理员:'+ res.msg) }
       }).catch(err => {
@@ -273,13 +270,16 @@ export default {
       })
     },
     /* 公共逻辑 */
-    handlerPageChange (type,id) {
+    // 添加分类
+    onAddClass() {
       console.log("row data:",id);
       this.dialogVisible = true
       if(id) { 
         search({id}).then(res => this.formRole = res.data)
       }
-      // this.$router.push({ path: 'role/modify', query: {type: type, id: id || ''} })
+    },
+    handlerPageChange (type,id) {
+       this.$router.push({ path: 'dataDictionary/modify', query: {type: type, id: id || ''} })
     },
     getSearchFeild() {
       // 获取fetchData参数，缺什么加什么

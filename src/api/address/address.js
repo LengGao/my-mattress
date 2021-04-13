@@ -1,9 +1,8 @@
 import request from '@/utils/request'
 
-
 export function create (params) {
   return request({
-      url: '/admin/attribute/create',
+      url: '/admin/address/create',
       method: 'get',
       params: params
   })
@@ -11,7 +10,7 @@ export function create (params) {
 
 export function deleter (params) {
   return request({
-      url: '/admin/attribute/delete',
+      url: '/admin/address/delete',
       method: 'POST',
       params: params
   })
@@ -19,14 +18,14 @@ export function deleter (params) {
 
 export function update (params) {
   return request({
-      url: '/admin/attribute/update',
+      url: '/admin/address/update',
       method: 'POST',
       params: params
   })
 }
 export function search (params) {
   return request({
-      url: '/admin/attribute/get',
+      url: '/admin/address/get',
       method: 'get',
       params: params
   })
@@ -35,23 +34,16 @@ export function search (params) {
 // 分页
 export function all (params) {
   return request({
-      url: '/admin/attribute/paginate',
+      url: '/admin/address/paginate',
       method: 'get',
       params: params
   })
 }
 
-// 所有尺寸查询
-export function get (params) {
+// 设置默认地址
+export function defaultAddress (params) {
   return request({
-      url: '/admin/attribute/all',
-      method: 'get',
-      params: params
-  })
-}
-export function ban (params) {
-  return request({
-      url: '/admin/attribute/change_status',
+      url: '/admin/address/set_default',
       method: 'POST',
       params: params
   })
