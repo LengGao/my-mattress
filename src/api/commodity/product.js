@@ -78,7 +78,7 @@ export function allTypes (params) {
 }
 
 // 上传图片
-export function allTypes (file) {
+export function upImage (file) {
   return request({
       url: '/admin/product/upload',
       method: 'get',

@@ -3,7 +3,7 @@ import request from '@/utils/request'
 
 export function create (params) {
   return request({
-      url: '/admin/size/create',
+      url: '/admin/other_product/create',
       method: 'get',
       params: params
   })
@@ -11,7 +11,7 @@ export function create (params) {
 
 export function deleter (params) {
   return request({
-      url: '/admin/size/delete',
+      url: '/admin/other_product/delete',
       method: 'POST',
       params: params
   })
@@ -19,14 +19,14 @@ export function deleter (params) {
 
 export function update (params) {
   return request({
-      url: '/admin/size/update',
+      url: '/admin/other_product/update',
       method: 'POST',
       params: params
   })
 }
 export function search (params) {
   return request({
-      url: '/admin/size/get',
+      url: '/admin/other_product/get',
       method: 'get',
       params: params
   })
@@ -35,7 +35,7 @@ export function search (params) {
 // 分页
 export function all (params) {
   return request({
-      url: '/admin/size/paginate',
+      url: '/admin/other_product/paginate',
       method: 'get',
       params: params
   })
@@ -43,8 +43,17 @@ export function all (params) {
 
 export function ban (params) {
   return request({
-      url: '/admin/size/change_status',
+      url: '/admin/other_product/change_status',
       method: 'POST',
       params: params
   })
 }
+
+export function allTypes (params) {
+  return request({
+      url: '/admin/other_product/types',
+      method: 'get',
+      params: params
+  })
+}
+

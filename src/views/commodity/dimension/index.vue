@@ -4,27 +4,9 @@
       <div class="form-block">
         <el-form inline :model="form" ref="searchForm">
           <el-form-item><el-input placeholder="门店名称" v-model="form.name" /></el-form-item>
-            <el-form-item>
-            <el-select v-model="form.type" placeholder="门店类型">
-              <div v-if="optionsType.length > 0"><el-option v-for="(item,index) in optionsType" :key="index" :label="item.label" :value="item.val"></el-option></div>
-            </el-select>
-          </el-form-item>
           <el-form-item>
-            <el-date-picker placeholder="创建时间" type="date" v-model="form.start_at" value-format="yyyy-MM-dd"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="省" v-model.number="form.province_id" @change="handlerRegion('省',form.province_id)" clearable>
-             <el-option v-for="(item,index) in optionsProvince" :key="index" :label="item.name" :value="item.id"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="省" v-model.number="form.city_id" @change="handlerRegion('市',form.city_id)" clearable>
-              <el-option v-for="(item,index) in optionsCity" :key="index" :label="item.name" :value="item.id"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="区" v-model.number="form.district_id" @change="handlerRegion('区',form.district_id)" clearable>
-              <el-option v-for="(item,index) in optionsDistrict" :key="index" :label="item.name" :value="item.id"></el-option>
+            <el-select placeholder="状态" v-model.number="form.status" clearable>
+             <el-option v-for="(item,index) in optionsStatus" :key="index" :label="item.label" :value="item.value"></el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -38,10 +20,7 @@
         <el-table v-loading='listLoading' element-loading-text='Loading' :data='list'
           border fit stripe size='medium' >
           <div slot='empty'><span>暂无数据</span>&nbsp;&nbsp;<el-button type='text' @click='initTable'>初始化列表</el-button></div>
-          <!-- <el-table-column label="ID">
-            <template v-slot="scope">{{scope.row.id}}</template>
-          </el-table-column> -->
-          <el-table-column v-for="item in preList" :key="item.id" :label="item.label"  width="140" align="center">
+          <el-table-column v-for="item in preList" :key="item.id" :label="item.label"  width="160" align="center">
             <template v-if="item.type === 'status'" v-slot="scope">
               {{scope.row.status === 0 ? '禁用' : '启用' }}
             </template>
@@ -56,8 +35,7 @@
             <template slot-scope='scope'>
               <el-button type='text' @click='handlerEdit(scope.$index,scope.row)'>编辑</el-button>
               <el-button type='text' @click='banDebouce(scope.$index,scope.row)'>{{scope.row.status === 1 ? '禁用' : ' 启用'}}</el-button>
-              <el-button type="text" @click="handlerMember(scope.$index,scope.row)">查看会员</el-button>
-              <el-button type="text" @click="handlerDetail(scope.$index,scope.row)">查看订单</el-button>
+              <el-button type='text' @click='handlerDelete(scope.$index,scope.row)'>删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -74,31 +52,34 @@
 </template>
 
 <script>
-import { all,ban } from '@/api/commodity/dimension'
-import { provinces,cities,districts} from '@/api/infrastructure/range'
+import { all,ban,deleter } from '@/api/commodity/dimension'
 import { vueDebounce } from '@/utils/index'
 // 门店管理
 let tableConfig = [
-  {label: '门店编码', key: 'id', type: ''},
-  {label: '门店全称', key: 'name', type: ''},
-  {label: '门店简称', key: 'short_name', type: ''},
-  {label: '门店类型', key: 'type', type: 'select'},
-  {label: '筹备日期', key: 'prepare_date', type: 'date'},
-  {label: '开业日期', key: 'open_date', type: 'date'},
-  {label: '结业日期', key: 'finish_date', type: 'date'},
-  {label: '状态', key: 'status', type: 'status'},
-  {label: '创建人', key: 'creator_name', type: ''},
-  {label: '创建时间', key: 'created_at', type: 'date'}
+  {label: '尺寸编号',key: 'id', type: ''},
+  {label: '尺寸名称',key: 'name',type: ''},
+  {label: '标准宽度cm',key: 'length',type: ''},
+  {label: '标准长度cm',key: 'width',type: ''},
+  {label: '标准厚度cm',key: 'thickness',type: ''},
+  {label: '宽度下限cm（含）',key: 'min_width',type: ''},
+  {label: '宽度上限cm（含）',key: 'max_width',type: ''},
+  {label: '长度下限cm（含）',key: 'min_length',type: ''},
+  {label: '长度上限cm（含）',key: 'max_length',type: ''},
+  {label: '厚度下限cm（含）',key: 'min_thickness',type: ''},
+  {label: '厚度上限cm（含）',key: 'max_thickness',type: ''},
+  {label: '是否启用',key: 'status',type: 'status'},
+  {label: '创建人',key: 'creator_name',type: ''},
+  {label: '创建时间',key: 'created_at',type: 'date'}
 ]
 export default {
   data() {
     return {      
       /* search form */
-      form: {name: '',type:'',start_at:'',province_id:'',city_id:'',district_id:''},
+      form: {name: '',status:''},
       preform: [{label: '', key: '', type: '', childs: false}],
       role: [],
       formLoading: true,
-      optionsType: [],
+      optionsStatus: [{label: '禁用',value: 0},{label: '启用',value: 1}],
       optionsProvince: [],
       optionsCity: [],
       optionsDistrict: [],
@@ -114,16 +95,6 @@ export default {
       currentPage: 1,
       /* flag data */
       /* other data */
-    }
-  },
-  watch: {
-    province_id: function (newVal) {
-      console.log("province_id",newVal);
-      if (newVal) { this.getCity(newVal) }
-    },
-    city_id: function(newVal) {
-      console.log("city_id",newVal);
-      if (newVal) { this.getDistrict(this.city_id) }
     }
   },
   methods: {
@@ -158,21 +129,6 @@ export default {
         break;
       }
     },
-    getProvinces(name) {
-      provinces({name}).then(res => {
-        this.optionsProvince = res.data
-      })
-    },
-    getCity(province_id,name) {
-      cities({province_id,name}).then(res => {
-        this.optionsCity = res.data
-      })
-    },
-    getDistrict(city_id,name) {
-      districts({city_id,name}).then(res => {
-        this.optionsDistrict = res.data
-      })
-    },
     /* 表格逻辑 */
     initTable() {
       var option = this.initSearchFeild(this.getSearchFeild())
@@ -189,6 +145,15 @@ export default {
     },
     handlerCopy(index,data) {
       this.$message.info('功能正在开发。。。')
+    },
+    handlerDelete(index,data) {
+      this.$confirm(`确定要删除${data.name}吗？`,{ type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消',})
+      .then(res => {
+        deleter({id: data.id})
+        .then(res => { this.list.splice(index,1); this.$message.success("删除成功")})
+        .catch(err => this.$message.error(`删除失败${err.msg}`))
+      })
+      .catch(err => this.$message.info('操作已取消'))
     },
     banDebouce: vueDebounce('handlerBan'),
     handlerBan(index,data){
@@ -227,7 +192,7 @@ export default {
     /* 公共逻辑 */
     handlerPageChange (type,id) {
       console.log("row data:",id);
-      this.$router.push({ path: 'stores/modify', query: {type: type, id: id || ''} })
+      this.$router.push({ path: 'dimension/modify', query: {type: type, id: id || ''} })
     },
     getSearchFeild() {
       // 获取fetchData参数，缺什么加什么
@@ -236,11 +201,7 @@ export default {
         page: currentPage,
         size: pageSize,
         name: form.name,
-        type: form.type,
-        start_at: form.start_at ,
-        province_id: form.province_id,
-        city_id: form.city_id, 
-        district_id: form.district_id
+        status: form.status
       }
     },
     initSearchFeild(data){
@@ -264,18 +225,9 @@ export default {
     },
     pretreatTable() {
       // 预处理表格数据 
-      let options = {
-        "type": {0: '',1: '社区店',2: '商圈店',length: 3},
-        "property": {0: '',1: '直营',2: '加盟',3: '合作',length: 4}
-      }
-      tableConfig.forEach(item => {
-        if(item.type === 'select') item.options = options[item.key]
-      })
       return tableConfig
     },
     initComponet() {
-      this.optionsType = [{label: '社区店',val: 1},{label: '商圈店',val: 2}]
-      this.getProvinces()
       this.preList = this.pretreatTable()
     },
   },

@@ -4,27 +4,14 @@
       <div class="form-block">
         <el-form inline :model="form" ref="searchForm">
           <el-form-item><el-input placeholder="门店名称" v-model="form.name" /></el-form-item>
-            <el-form-item>
-            <el-select v-model="form.type" placeholder="门店类型">
-              <div v-if="optionsType.length > 0"><el-option v-for="(item,index) in optionsType" :key="index" :label="item.label" :value="item.val"></el-option></div>
+          <el-form-item>
+            <el-select placeholder="产品类型" v-model.number="form.type" clearable>
+             <el-option v-for="(item,index) in optionsTypes" :key="index" :label="item.name" :value="item.value"></el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-date-picker placeholder="创建时间" type="date" v-model="form.start_at" value-format="yyyy-MM-dd"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="省" v-model.number="form.province_id" @change="handlerRegion('省',form.province_id)" clearable>
-             <el-option v-for="(item,index) in optionsProvince" :key="index" :label="item.name" :value="item.id"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="省" v-model.number="form.city_id" @change="handlerRegion('市',form.city_id)" clearable>
-              <el-option v-for="(item,index) in optionsCity" :key="index" :label="item.name" :value="item.id"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-select placeholder="区" v-model.number="form.district_id" @change="handlerRegion('区',form.district_id)" clearable>
-              <el-option v-for="(item,index) in optionsDistrict" :key="index" :label="item.name" :value="item.id"></el-option>
+            <el-select placeholder="状态" v-model.number="form.status" clearable>
+             <el-option v-for="(item,index) in optionsStatus" :key="index" :label="item.label" :value="item.value"></el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -38,15 +25,15 @@
         <el-table v-loading='listLoading' element-loading-text='Loading' :data='list'
           border fit stripe size='medium' >
           <div slot='empty'><span>暂无数据</span>&nbsp;&nbsp;<el-button type='text' @click='initTable'>初始化列表</el-button></div>
-          <!-- <el-table-column label="ID">
-            <template v-slot="scope">{{scope.row.id}}</template>
-          </el-table-column> -->
-          <el-table-column v-for="item in preList" :key="item.id" :label="item.label"  width="140" align="center">
+          <el-table-column v-for="item in preList" :key="item.id" :label="item.label"  width="180" align="center">
             <template v-if="item.type === 'status'" v-slot="scope">
-              {{scope.row.status === 0 ? '禁用' : '启用' }}
+              {{scope.row.status === 0 ? '下架' : '上架' }}
             </template>
             <template v-else-if="item.type === 'select'" v-slot="scope" >
               {{ item.options[scope.row[item.key]] }}
+            </template>
+            <template v-else-if="item.type === 'image'" v-slot="scope" >
+              <el-avatar shape="square" :size="150" :src="scope.row.main_imag"></el-avatar>
             </template>
             <template v-else v-slot="scope">
               {{scope.row[item.key]}}
@@ -56,8 +43,7 @@
             <template slot-scope='scope'>
               <el-button type='text' @click='handlerEdit(scope.$index,scope.row)'>编辑</el-button>
               <el-button type='text' @click='banDebouce(scope.$index,scope.row)'>{{scope.row.status === 1 ? '禁用' : ' 启用'}}</el-button>
-              <el-button type="text" @click="handlerMember(scope.$index,scope.row)">查看会员</el-button>
-              <el-button type="text" @click="handlerDetail(scope.$index,scope.row)">查看订单</el-button>
+            <el-button type='text' @click='handlerDelete(scope.$index,scope.row)'>删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -74,32 +60,33 @@
 </template>
 
 <script>
-import { all,ban } from '@/api/infrastructure/store'
-import { provinces,cities,districts} from '@/api/infrastructure/range'
+import { all,ban,deleter,allTypes } from '@/api/commodity/product'
 import { vueDebounce } from '@/utils/index'
 // 门店管理
 let tableConfig = [
-  {label: '门店编码', key: 'id', type: ''},
-  {label: '门店全称', key: 'name', type: ''},
-  {label: '门店简称', key: 'short_name', type: ''},
-  {label: '门店类型', key: 'type', type: 'select'},
-  {label: '筹备日期', key: 'prepare_date', type: 'date'},
-  {label: '开业日期', key: 'open_date', type: 'date'},
-  {label: '结业日期', key: 'finish_date', type: 'date'},
-  {label: '状态', key: 'status', type: 'status'},
-  {label: '创建人', key: 'creator_name', type: ''},
-  {label: '创建时间', key: 'created_at', type: 'date'}
+  {label: '产品主图',key: 'main_image', type: 'image'},
+  {label: '产品id',key: 'id', type: ''},
+  {label: '产品编号',key: 'code', type: ''},
+  {label: '产品名称',key: 'name',type: ''},
+  {label: '产品尺寸',key: 'size_name',type: ''},
+  {label: '适用范围',key: 'scope_name',type: ''},
+  {label: '产品类型',key: 'type_name',type: ''},
+  {label: '综合定价',key: 'actual_price',type: ''},
+  {label: '排序',key: 'sort',type: ''},
+  {label: '上架状态',key: 'status',type: 'status'},
+  {label: '创建人',key: 'creator_name',type: ''},
+  {label: '创建时间',key: 'created_at',type: 'date'}
 ]
 export default {
   data() {
     return {      
       /* search form */
-      form: {name: '',type:'',start_at:'',province_id:'',city_id:'',district_id:''},
+      form: {name: '',type:'',status:''},
       preform: [{label: '', key: '', type: '', childs: false}],
       role: [],
       formLoading: true,
-      optionsType: [],
-      optionsProvince: [],
+      optionsStatus: [{label: '下架',value: 0},{label: '上架',value: 1}],
+      optionsTypes: [],
       optionsCity: [],
       optionsDistrict: [],
       province_id: '',
@@ -114,16 +101,6 @@ export default {
       currentPage: 1,
       /* flag data */
       /* other data */
-    }
-  },
-  watch: {
-    province_id: function (newVal) {
-      console.log("province_id",newVal);
-      if (newVal) { this.getCity(newVal) }
-    },
-    city_id: function(newVal) {
-      console.log("city_id",newVal);
-      if (newVal) { this.getDistrict(this.city_id) }
     }
   },
   methods: {
@@ -158,21 +135,6 @@ export default {
         break;
       }
     },
-    getProvinces(name) {
-      provinces({name}).then(res => {
-        this.optionsProvince = res.data
-      })
-    },
-    getCity(province_id,name) {
-      cities({province_id,name}).then(res => {
-        this.optionsCity = res.data
-      })
-    },
-    getDistrict(city_id,name) {
-      districts({city_id,name}).then(res => {
-        this.optionsDistrict = res.data
-      })
-    },
     /* 表格逻辑 */
     initTable() {
       var option = this.initSearchFeild(this.getSearchFeild())
@@ -189,6 +151,15 @@ export default {
     },
     handlerCopy(index,data) {
       this.$message.info('功能正在开发。。。')
+    },
+    handlerDelete(index,data) {
+      this.$confirm(`确定要删除${data.name}吗？`,{ type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消',})
+      .then(res => {
+        deleter({id: data.id})
+        .then(res => { this.list.splice(index,1); this.$message.success("删除成功")})
+        .catch(err => this.$message.error(`删除失败${err.msg}`))
+      })
+      .catch(err => this.$message.info('操作已取消'))
     },
     banDebouce: vueDebounce('handlerBan'),
     handlerBan(index,data){
@@ -213,6 +184,11 @@ export default {
         this.listLoading = false
       })
     },
+    fetchDataTypes() {
+      allTypes().then(res => {
+        this.optionsTypes = res.data
+      })
+    },
     /* 分页逻辑 */
     handleCurrentChange(currentPage) {
       // 改变页面
@@ -227,7 +203,7 @@ export default {
     /* 公共逻辑 */
     handlerPageChange (type,id) {
       console.log("row data:",id);
-      this.$router.push({ path: 'stores/modify', query: {type: type, id: id || ''} })
+      this.$router.push({ path: 'product/modify', query: {type: type, id: id || ''} })
     },
     getSearchFeild() {
       // 获取fetchData参数，缺什么加什么
@@ -237,10 +213,7 @@ export default {
         size: pageSize,
         name: form.name,
         type: form.type,
-        start_at: form.start_at ,
-        province_id: form.province_id,
-        city_id: form.city_id, 
-        district_id: form.district_id
+        status: form.status
       }
     },
     initSearchFeild(data){
@@ -264,19 +237,11 @@ export default {
     },
     pretreatTable() {
       // 预处理表格数据 
-      let options = {
-        "type": {0: '',1: '社区店',2: '商圈店',length: 3},
-        "property": {0: '',1: '直营',2: '加盟',3: '合作',length: 4}
-      }
-      tableConfig.forEach(item => {
-        if(item.type === 'select') item.options = options[item.key]
-      })
       return tableConfig
     },
     initComponet() {
-      this.optionsType = [{label: '社区店',val: 1},{label: '商圈店',val: 2}]
-      this.getProvinces()
       this.preList = this.pretreatTable()
+      this.fetchDataTypes()
     },
   },
   created() {
@@ -298,4 +263,7 @@ export default {
 }
 </script>
 <style scoped>
+.table__img {
+  width: 100%;
+}
 </style>

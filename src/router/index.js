@@ -136,13 +136,13 @@ export const constantRoutes = [
         path: 'product',
         name: 'product',
         component: () => import('@/views/commodity/product//index'),
-        meta: { title: '产品管理' }
+        meta: { title: '床垫产品管理' }
       },
       {
         path: 'attributeCombination',
         name: 'attributeCombination',
         component: () => import('@/views/commodity/attributeCombination/index'),
-        meta: { title: '产品属性组合' }
+        meta: { title: '其他产品管理' }
       }
     ]
   },
