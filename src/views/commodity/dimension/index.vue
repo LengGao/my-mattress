@@ -3,7 +3,7 @@
     <div class="app-container" style="display: flex; flex-direction: column; width: 100%;">
       <div class="form-block">
         <el-form inline :model="form" ref="searchForm">
-          <el-form-item><el-input placeholder="门店名称" v-model="form.name" /></el-form-item>
+          <el-form-item><el-input placeholder="尺寸名称" v-model="form.name" /></el-form-item>
           <el-form-item>
             <el-select placeholder="状态" v-model.number="form.status" clearable>
              <el-option v-for="(item,index) in optionsStatus" :key="index" :label="item.label" :value="item.value"></el-option>

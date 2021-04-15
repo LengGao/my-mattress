@@ -49,6 +49,7 @@ export function get (params) {
       params: params
   })
 }
+
 export function ban (params) {
   return request({
       url: '/admin/attribute/change_status',
