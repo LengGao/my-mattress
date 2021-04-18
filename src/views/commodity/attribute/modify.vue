@@ -209,10 +209,10 @@ const formConfig = [
         },
         getDataOpts() {
             getAllSize().then(res_size => {
-                this.optAttribute = res_size.data
-            })
+                this.optSizes = res_size.data
+                })
             get().then(res_attr => {
-                this.optSizes = res_attr.data
+                this.optAttribute = res_attr.data
             })
         },
         getDataForm(id) {

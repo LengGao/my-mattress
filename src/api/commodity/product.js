@@ -53,7 +53,7 @@ export function ban (params) {
 // 适用范围列表
 export function scopes (params) {
   return request({
-      url: '/admin/product/sku_list',
+      url: '/admin/product/scopes',
       method: 'get',
       params: params
   })
@@ -81,8 +81,9 @@ export function allTypes (params) {
 export function upImage (file) {
   return request({
       url: '/admin/product/upload',
-      method: 'get',
+      method: 'post',
       params: file
   })
 }
 
+export const uploadUrl = process.env.NODE_ENV === 'development' ? 'http://8.136.183.159:8081' : process.env.VUE_APP_BASE_API

@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-export function cerate(params) {
+export function create(params) {
  return request({
    url: '/admin/region/create',
    method: 'post',
@@ -56,7 +56,7 @@ export function deleter(params) {
   * 启用或禁用地区
   * @param {*} params id,status
   */
- export function banRage(params) {
+ export function ban(params) {
   return request({
     url: '/admin/region/change_status',
     method: 'post',

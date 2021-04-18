@@ -41,7 +41,7 @@ export function all (params) {
   })
 }
 
-// 所有尺寸查询
+// 所属性
 export function get (params) {
   return request({
       url: '/admin/attribute/all',

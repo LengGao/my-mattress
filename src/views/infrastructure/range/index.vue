@@ -52,7 +52,7 @@
 
 <script>
 // 区域管理
-import { all, ban,deleter, childrens, provinces, cities, districts } from '@/api/infrastructure/range'
+import { all, ban, deleter, childrens, provinces, cities, districts } from '@/api/infrastructure/range'
 import { vueDebounce } from '@/utils/index'
 let tableConfig = [
   {label: 'ID', key: 'id', type: ''},

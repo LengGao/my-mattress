@@ -56,7 +56,7 @@
 
 <script>
 import MyHead from '@/components/MyHeader/index'
-import { allRage,create,update,search,cityGenders, provinces, cities} from '@/api/infrastructure/range'
+import { allRage,create,update,search,cityGenders,} from '@/api/infrastructure/range'
 
  export default {
     components: {MyHead},

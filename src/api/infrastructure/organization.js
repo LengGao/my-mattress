@@ -52,3 +52,9 @@ export function ban(params) {
     })
 }
 
+export function allOrganization() {
+    return request({
+        url: '/admin/department/all',
+        method: 'get'
+    })
+}
