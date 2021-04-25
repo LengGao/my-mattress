@@ -5,100 +5,61 @@
         v-loading="formLoading" hide-required-asterisk show-message>
         <div style="padding: 20px;"><h3>基本信息</h3> <hr /></div>
         <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="门店编码" prop="id">
+            <el-col :span="10"><el-form-item label="产品Id" prop="id">
                 <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.id" disabled/></el-col>
             </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="门店全称" prop="name">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.name" :maxlength="20" /></el-col>
+            <el-col :span="10"><el-form-item label="产品编号" prop="code">
+                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.code" :maxlength="20" /></el-col>
             </el-form-item></el-col>
          </el-row>
          
         <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="门店简称" prop="short_name">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.short_name" :maxlength="20" /></el-col>
+            <el-col :span="10"><el-form-item label="产品名称" prop="name">
+                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.name" :maxlength="20" /></el-col>
             </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="门店类型" prop="type">
-                <el-col :span="20"><MySelect placeholder="請輸入" v-model="form.type" :data="optType" @change="onChange" clea> </MySelect></el-col>
+            <el-col :span="10"><el-form-item label="单价" prop="actual_price">
+                <el-col :span="20"> <el-input placeholder="請輸入" v-model.number="form.actual_price" :maxlength="20" /></el-col>
             </el-form-item></el-col>
          </el-row>
 
         <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="上级组织架构" prop="parent_id">
-                <el-col :span="20"><el-select placeholder="請輸入" v-model="form.parent_id" value="">
-                    <el-option v-for="item in optDept" :key="item.id" :label="item.name" :value="item.parent_id"></el-option>
+            <el-col :span="10"><el-form-item label="产品类型" prop="type">
+                <el-col :span="20"><el-select placeholder="請輸入" v-model="form.type">
+                    <el-option v-for="item in optType" :key="item.value" :label="item.label" :value="item.value">
+                    </el-option>
                 </el-select></el-col>
             </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="性质" prop="property">
-                <el-col :span="20"><MySelect placeholder="請輸入" v-model="form.property" :data="optProperty" @change="onChange" ></MySelect></el-col>
+            <el-col :span="10"><el-form-item label="适用范围" prop="size_id">
+                <el-col :span="20"><el-select placeholder="請輸入" v-model="size_id">
+                    <el-option-group v-for="group in optScopes" :key="'group' + group.id" :label="group.name">
+                        <el-option :label="group.name" :value="group.id"></el-option>
+                        <el-option v-for="item in group.child" :key="item.id" :label="item.name" :value="item.id"></el-option>
+                    </el-option-group>
+                </el-select></el-col>
             </el-form-item></el-col>
          </el-row>
 
         <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="筹备日期" prop="prepare_date">
-                <el-col :span="20"><el-date-picker  placeholder="选择日期" v-model="form.prepare_date"></el-date-picker></el-col>
+            <el-col :span="10"><el-form-item label="排序" prop="sort">
+                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.sort" :maxlength="20" /></el-col>
             </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="开业日期" prop="open_date">
-                <el-col :span="20"><el-date-picker placeholder="請輸入" v-model="form.open_date" @change="handlerBeginData"></el-date-picker></el-col>
-            </el-form-item></el-col>
-         </el-row>
-
-        <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="门店地址" prop="address">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.address" :maxlength="20" /></el-col>
-            </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="结业日期" prop="finish_date">
-                <el-col :span="20"><el-date-picker placeholder="請輸入" v-model="form.finish_date" @change="handlerFinishData"></el-date-picker></el-col>
-            </el-form-item></el-col>
-         </el-row>
-
-        <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="初始投资" prop="investment">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.investment" :maxlength="20" /></el-col>
-            </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="门店状态" prop="status">
-                <el-col :span="20"><el-select placeholder="請輸入" v-model="form.status" value="" disabled>
+            <el-col :span="10"><el-form-item label="上架状态" prop="actual_price">
+                <el-col :span="20"><el-select placeholder="請輸入" v-model="form.size_id">
                     <el-option v-for="item in optStatus" :key="item.value" :label="item.label" :value="item.value">
                     </el-option>
                 </el-select></el-col>
             </el-form-item></el-col>
          </el-row>
-        <div style="padding: 20px;"><h3>面积信息</h3> <hr /></div>
-        <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="占地面积" prop="total_area">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.total_area" :maxlength="20" /></el-col>
-            </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="实用面积" prop="actual_area">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.actual_area" :maxlength="20" /></el-col>
-            </el-form-item></el-col>
-         </el-row>
-        <div style="padding: 20px;"><h3>租赁信息</h3> <hr /></div>
-        <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="租赁方名称" prop="leaseholder">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.leaseholder" :maxlength="20"/></el-col>
-            </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="租赁日期" prop="start_lease_at">
-                <el-col :span="20"><el-date-picker placeholder="请选择" v-model="form.start_lease_at"></el-date-picker>—<el-date-picker placeholder="请选择" v-model="form.end_lease_at"></el-date-picker></el-col>
-            </el-form-item></el-col>
-         </el-row>
 
         <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="租金标准(元/方）" prop="lease_price">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.lease_price" :maxlength="20" /></el-col>
+            <el-col :span="10"><el-form-item label="创建人" prop="creator_name">
+                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.creator_name" :maxlength="20" /></el-col>
             </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="物业费标准(元/方）" prop="estate_price">
-                <el-col :span="20"><el-input placeholder="請輸入" v-model="form.estate_price" :maxlength="20" /></el-col>
-            </el-form-item></el-col>
-         </el-row>
-
-        <el-row type="flex" justify="space-around" :gutter="2">
-            <el-col :span="10"><el-form-item label="月租（元）" prop="month_rent">
-                <el-col :span="20"> <el-input placeholder="請輸入" v-model="form.month_rent" :maxlength="20" /></el-col>
-            </el-form-item></el-col>
-            <el-col :span="10"><el-form-item label="备注" prop="remark">
-                <el-col :span="20"><el-input placeholder="請輸入" v-model="form.remark" :maxlength="50" /></el-col>
+            <el-col :span="10"><el-form-item label="创建时间" prop="created_at">
+                <el-col :span="20"><el-date-picker placeholder="請輸入" v-model="form.created_at" @change="handlerFinishData"></el-date-picker></el-col>
             </el-form-item></el-col>
          </el-row>
-
+        
          <el-row type="flex" justify="center">
             <el-form-item style="margin-top: 20px;">
                 <el-button type="primary" @click="onSubmit('form')" :loading="buttonLoading">提交</el-button>
@@ -113,14 +74,15 @@
 <script>
 import MyHead from '@/components/MyHeader/index'
 import MySelect from '@/components/MySelect/index'
-import { allOrganization } from '@/api/infrastructure/organization'
-import { create,update,search } from '@/api/infrastructure/store'
+import { scopes } from '@/api/commodity/product'
+import { create,update,search,allTypes } from '@/api/commodity/attributeCombination'
+
 const formConfig = [
-    {label: '门店编码',key: 'id',valid: 'required'},
-    {label: '门店全称',key: 'name',valid: 'required'},
-    {label: '门店简称',key: 'short_name',valid: 'required'},
-    {label: '门店编码',key: 'type',valid: 'required'},
-    {label: '门店编码',key: 'dept_id',valid: 'required'},
+    {label: '产品编码',key: 'id',valid: 'required'},
+    {label: '产品全称',key: 'name',valid: 'required'},
+    {label: '产品简称',key: 'short_name',valid: 'required'},
+    {label: '产品编码',key: 'type',valid: 'required'},
+    {label: '产品编码',key: 'dept_id',valid: 'required'},
 ]
 
  export default {
@@ -129,30 +91,40 @@ const formConfig = [
         return {
             /*--- form data ---*/
             form: { 
-                id:'',name:'',short_name:'',type:'',dept_id:'',property:'',prepare_date:'',open_date:'',finish_date:'',address:'',investment:'',
-                total_area:'',actual_area:'',leaseholder:'',start_lease_at:'',end_lease_at:'',lease_price:'',estate_price:'',
-                month_rent:'',month_rent:'',creator_name:'',created_at:'',province_id:'',city_id:'',district_id:''
+                id:'',code: '',name:'',status:'',type:'',actual_price:'',sort:'',creator_name:'',created_at:''
             },
+            dept_ids: [], // 使用范围，格式：[1,2,3,…]
+            sku_list: [], // 产品属性 [{“attribute_id”:1, “attribute_value_id”:1, “price”:100},…]
             preform: [],
             rules: {},
             formLoading: false,
             buttonLoading: false,
+            headers: {},
+            withCredentials: false,
+            fileList: [],
+            editorOption: {},
+            /*--- table data ---*/
+            list: [],
+            listLoding: true,
             /*--- other data ---*/
             title: '',
-            data_rigin: '', // 路由门店Id
-            optType: [{label: '社区店',value: 1},{label: '商圈店',value: 2}], // 禁用在项里加disabled属性
-            optProperty:  [{label: '直营',value: 1},{label: '加盟',value: 2},{label: '合作',value: 3}],
-            optStatus: [{label: '筹备中',value: 1},{label: '已开业',value:2},{label: "已结业",value: 3}],
-            optDept: []
+            data_rigin: '', // 路由产品Id
+            optType: [], // 禁用在项里加disabled属性
+            optScopes: [],
+            optSizes: [],
+            optAttribute: [],   
+            optStatus: [{label: '下架',value: 0},{label: '上架',value: 1}],
+            editor: null,
+            editorData: ''
         }
     },
     methods: {
         /*--- header逻辑 ---*/
         onSetTitle (type) {
             switch(type) {
-                case 'edit': this.title = '编辑门店'; break;
-                case 'add': this.title = '添加门店'; break;
-                case 'detail': this.title = '门店详情'; break; 
+                case 'edit': this.title = '编辑产品'; break;
+                case 'add': this.title = '添加产品'; break;
+                case 'detail': this.title = '产品详情'; break; 
                 default: ; break;
             }
         },
@@ -177,7 +149,6 @@ const formConfig = [
         },
         onReset(refName) {
             this.$refs[refName].resetFields();
-            // console.log("form",this.form);
         },
         onCancel() {
             this.$router.back()
@@ -185,23 +156,31 @@ const formConfig = [
         onChange(e,v) {
             console.log('onChange:',e,v,this.form);
         },
+        onDelete(data, type) {
+            const index_attr = this.form.attribute_values.indexOf(data)
+            , index_size = this.form.size_prices.indexOf(data)
+            if (type === 'attribute' && index_attr !== -1) {
+                this.form.attribute_values.splice(index_attr, 1)
+            }
+            if (type === 'size' && index_size !== -1) {
+                this.form.size_prices.splice(index_size, 1)
+            }
+        },
+        onAdd(type) {
+            if (!this.form.size_id) { this.$message.info('请先选择尺寸')}
+            let attribute_length = 'attr_' + this.form.attribute_values.length
+            let siez_length = 'size_' + this.form.size_prices.length
+            if (type === 'attribute') {
+                this.form.attribute_values.push({id: attribute_length, name: '', value: ''})
+            }
+            if (type === 'size') {
+                this.form.size_prices.push({id: siez_length, size_id: '', attribute_value_id: '', price: ''})
+            }
+        },
+        handlerChangeSize(value) {
+        },
         onOptionClick(e,v){
             console.log('onOptionClick:',e,v);
-        },
-        getDataOptDept() {
-            allOrganization().then(res => {
-                this.optDept = res.data
-            })
-        },
-        getDataForm(id) {
-            this.formLoading = true
-            search({id}).then(res => {
-                this.form = res.data
-            }).catch(err => {
-                this.$message.error("加载失败")
-            }).finally(()=> {
-                this.formLoading = false
-            })
         },
         handlerBeginData(val) {
             if(val) {
@@ -216,18 +195,115 @@ const formConfig = [
             } else {
                 this.form.open_date ? this.form.status = 2 :this.form.status = 1 
             }
+        },        
+        submitUpload(event) {
+            if (this.fileList.length <= 0) return this.$message.info("请上传图片");
+            this.$refs.upload.submit()
+        },
+        beforeUpload(file, fileList) {
+            // console.log(file, fileList);
+        },
+        uploadChange(file, fileList) {
+            // console.log(file, fileList);
+            this.fileList = fileList
+        },
+        handleRemove(file, fileList) {
+            // console.log(file, fileList);
+        },
+        handlePreview(file) {
+            // console.log(file);
+        },
+        uploadError(file, fileList) {
+            // console.log(file, fileList);
+            this.$message({type:'error', message: `上传失败${file}`})
+        },
+        uploadSuccess(respone, file) {
+            console.log("uploadSuccess",respone,file);
+            let data = respone.data
+            data.is_default = 0
+            data.id = this.list.length + 1
+            this.$message.success('上传成功')
+            this.list.push(data)
+        },
+        // 表格逻辑
+        handlerSetDafault(index, data) {
+            let list = this.list
+            list.forEach((item,i) => {             
+                if (item.id === data.id ) {
+                    item.is_default = 1
+                } else {
+                    item.is_default = 0
+                }
+            })
+            list.sort((a,b) => {
+              return b.is_default - a.is_default
+            })
+            this.list = list
+            this.listLoding = false
+            setTimeout(() => {
+                this.listLoding = true
+            },1000)
+        },
+        handlerDelete(index, data) {
+            this.form.images.splice(index,1)
+        },
+        sortChange() {
+            console.log("sortChange");
+        },
+        onEditorBlur(quill) {
+            console.log('editor blur!', quill)
+        },
+        onEditorFocus(quill) {
+            console.log('editor focus!', quill)
+        },
+        onEditorReady(quill) {
+            console.log('editor ready!', quill)
+        },
+        onEditorChange({ quill, html, text }) {
+            console.log('editor change!', quill, html, text)
+            this.content = html
+        },
+        getDataForm(id) {
+            this.formLoading = true
+            search({id}).then(res => {
+                this.form = res.data
+                if (res.data.images && res.data.images.length > 0) {
+                   this.list =  res.data.images.map((item,i) => {
+                        return item.id = i + 1
+                    })
+                }
+            }).catch(err => {
+                console.log("getDataForm",err);
+                this.$message.error("加载失败")
+            }).finally(()=> {
+                this.formLoading = false
+            })
+        },
+        getOptType() {
+            allTypes().then(res => {
+                this.optType = res.data
+            }).catch(err => {
+                console.log("getOptType",err);
+                this.$message.error("加载失败")
+            })
+        },
+        getOptScopes(id) {
+            scopes({id}).then(res => {
+                this.optScopes = res.data
+            }).catch(err => {
+                console.log("getOptScopes",err);
+                this.$message.error("加载失败")
+            })
         },
         /*--- 公共逻辑 ---*/
-        initComponet(){
-            this.getDataOptDept();
-            if (this.data_rigin) this.form.id = this.data_rigin
-            // console.log("initComponet",this.data_rigin,this.form);
+        initComponet() {
+            this.getOptType()
         },
         preFormRules(refNames) {
             // 校验配置与逻辑 按时不做
             // let obj = Object.assign({},this.form)  // 一级属性深拷贝，二级属性浅拷贝，相同属性后盖前
             // let preObj = [];
-        }
+        },
     },
     watch: {
         $route: {
@@ -240,21 +316,32 @@ const formConfig = [
         }
     },
     beforeCreate() {
-        console.log("beforeCreate:",this);
+        console.log("beforeCreate:",this)  
     },
     created() {
-        // console.log("created:",this);
+        // console.log("created:",this);    
         this.initComponet()
-        if (this.data_rigin) this.getDataForm(this.data_rigin)
+        if (this.data_rigin) {
+            this.form.id = this.data_rigin
+            this.getDataForm(this.data_rigin)
+        }
+        this.getOptScopes(this.data_rigin)
     },
-    mounted() {
-        // console.log("mounted:",this);
-    },
-    updated() {
-        // console.log("updated:",this);
-    }
  }
 </script>
 
 <style scoped>
+.title {
+    line-height: 50px;
+    background: #ccc;
+}
+
+.flex-tittle {
+    text-align: center;
+}
+
+.home {
+    width: 100%;
+    margin: auto;
+}
 </style>

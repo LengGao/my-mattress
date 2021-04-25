@@ -32,7 +32,7 @@
                 </el-select></el-col>
             </el-form-item></el-col>
             <el-col :span="10"><el-form-item label="适用范围" prop="size_id">
-                <el-col :span="20"><el-select placeholder="請輸入" v-model="form.size_id">
+                <el-col :span="20"><el-select placeholder="請輸入" v-model="dept_ids">
                     <el-option-group v-for="group in optScopes" :key="'group' + group.id" :label="group.name">
                         <el-option :label="group.name" :value="group.id"></el-option>
                         <el-option v-for="item in group.child" :key="item.id" :label="item.name" :value="item.id"></el-option>
@@ -121,7 +121,7 @@
             </el-form-item>
          </el-row>
 
-        <div style="padding: 20px;"><h3>图为信息</h3> <hr /></div>
+        <div style="padding: 20px;"><h3>图文信息</h3> <hr /></div>
 
         <div style="padding: 20px;"><h4>图片管理</h4> <hr /></div>
         <el-row type="flex" justify="space-around">
@@ -173,11 +173,20 @@
 
         <div style="padding: 20px;"><h4>图文/视频</h4> <hr /></div>
         <el-row type="flex" justify="center">
-            <quill-editor v-model="form.content" ref="myQuillEditor" :options="editorOption"
-                @blur="onEditorBlur($event)" @focus="onEditorFocus($event)" @ready="onEditorReady($event)">
-              </quill-editor>
-
+            <div class="home">
+                <div id="toolbar" ref="toolbar"></div>
+                <hr />
+                <div id="text" ref="text" style="width: 100%; height: 500px; border: 1px solid #000;"> </div>
+            </div> 
         </el-row>
+        
+         <el-row type="flex" justify="center">
+            <el-form-item style="margin-top: 20px;">
+                <el-button type="primary" @click="onSubmit('form')" :loading="buttonLoading">提交</el-button>
+                <el-button type="warning" @click="onReset('form')">重置</el-button>
+                <el-button type="info" @click="onCancel">取消</el-button> 
+            </el-form-item>
+         </el-row>
      </el-form>
  </div>
 </template>
@@ -185,10 +194,7 @@
 <script>
 import MyHead from '@/components/MyHeader/index'
 import MySelect from '@/components/MySelect/index'
-import 'quill/dist/quill.core.css'
-import 'quill/dist/quill.snow.css'
-import 'quill/dist/quill.bubble.css'
-import { quillEditor } from 'vue-quill-editor' // 分文本
+import wangEditor from 'wangeditor'
 import { get as getAllSize } from '@/api/commodity/dimension'
 import { create,update,search,scopes,allAttributes,allTypes,upImage,uploadUrl } from '@/api/commodity/product'
 
@@ -201,7 +207,7 @@ const formConfig = [
 ]
 
  export default {
-    components: {MyHead,MySelect,quillEditor},
+    components: {MyHead,MySelect},
     data() {
         return {
             /*--- form data ---*/
@@ -209,6 +215,8 @@ const formConfig = [
                 id:'',code: '',name:'',status:'',type:'',size_id:'',base_price:'',total_price:'',actual_price:'',sort:'',creator_name:'',
                 created_at:'',content:'',main_image:'', images:[]
             },
+            dept_ids: [], // 使用范围，格式：[1,2,3,…]
+            sku_list: [], // 产品属性 [{“attribute_id”:1, “attribute_value_id”:1, “price”:100},…]
             preform: [],
             rules: {},
             formLoading: false,
@@ -229,12 +237,9 @@ const formConfig = [
             optSizes: [],
             optAttribute: [],   
             optStatus: [{label: '下架',value: 0},{label: '上架',value: 1}],
+            editor: null,
+            editorData: ''
         }
-    },
-    computed: {
-      editor() {
-        return this.$refs.myQuillEditor.quill
-      }
     },
     methods: {
         /*--- header逻辑 ---*/
@@ -439,7 +444,13 @@ const formConfig = [
             // 校验配置与逻辑 按时不做
             // let obj = Object.assign({},this.form)  // 一级属性深拷贝，二级属性浅拷贝，相同属性后盖前
             // let preObj = [];
-        }
+        },
+        getEditorData() {
+        // 通过代码获取编辑器内容
+            let data = this.editor.txt.html()
+            this.form.content = data
+            console.log('通过代码获取编辑器内容',this.form.content,data);
+        },  
     },
     watch: {
         $route: {
@@ -465,6 +476,71 @@ const formConfig = [
         }
         this.getOptScopes(this.data_rigin)
     },
+    mounted() {
+        const editor = new wangEditor('#toolbar', '#text')
+        const token =  this.$store.getters.token
+        // console.log("text",this.$refs.text, document.querySelector('#text')) // true
+        editor.config.onchange = (html) => {
+            this.form.content = editor.txt.html()
+            // console.log('通过代码获取编辑器内容',this.form.content);
+        }
+
+        editor.config.uploadImgServer = `${uploadUrl}/admin/product/upload`
+        editor.config.uploadImgMaxSize = 5 * 1024 * 1024 // 5M
+        editor.config.uploadImgAccept = ['jpg', 'jpeg', 'png', 'gif', 'bmp','webp']
+        editor.config.uploadImgMaxLength = 5 // 一次最多上传 5 个图片
+        editor.config.uploadImgParamsWithUrl = false
+        editor.config.uploadFileName = 'file' // 发送数据的字段名 file: binary.
+        editor.config.uploadImgHeaders = { "Authorization": token }
+        editor.config.uploadImgHooks = {
+            // 上传图片之前
+            before: (xhr) => console.log(xhr),
+            // 图片上传并返回了结果，图片插入已成功
+            success: (xhr) => console.log('success', xhr),
+            // 图片上传并返回了结果，但图片插入时出错了
+            fail: (xhr, editor, resData) => console.log('fail', resData),
+            // 上传图片出错，一般为 http 请求的错误
+            error: (xhr, editor, resData) => console.log('error', xhr, resData),
+            // 上传图片超时
+            timeout: (xhr) =>  console.log('timeout'),
+            // 例如服务器端返回的不是 { errno: 0, data: [...] } 这种格式，可使用 customInsert
+            customInsert: function(insertImgFn, result) {
+                insertImgFn(result.data.url)
+            }
+        }
+        editor.config.uploadVideoServer = `${uploadUrl}/admin/product/upload`
+        editor.config.uploadVideoMaxSize = 10 * 1024 * 1024 // 10M
+        editor.config.uploadVideoAccept = ['mp4']
+        editor.config.uploadVideoParamsWithUrl  = false
+        editor.config.uploadVideoName = 'file'
+        editor.config.uploadVideoHeaders = { "Authorization": token }
+        editor.config.uploadVideoHooks = {
+            // 上传图片之前
+            before: (xhr) => console.log(xhr),
+            // 图片上传并返回了结果，图片插入已成功
+            success: (xhr) => console.log('success', xhr),
+            // 图片上传并返回了结果，但图片插入时出错了
+            fail: (xhr, editor, resData) => console.log('fail', resData),
+            // 上传图片出错，一般为 http 请求的错误
+            error: (xhr, editor, resData) => console.log('error', xhr, resData),
+            // 上传图片超时
+            timeout: (xhr) =>  console.log('timeout'),
+            // 例如服务器端返回的不是 { errno: 0, data: [...] } 这种格式，可使用 customInsert
+            customInsert: function(insertVideoFn, result) {
+                insertVideoFn(result.data.url)
+            }
+        }
+        // editor.config.withCredentials = true // 携带cookie
+        // editor.config.withVideoCredentials = true
+        editor.create() // 创建编辑器
+        this.editor =  editor
+        //   $text1.val(editor.txt.html())
+    },
+    beforeDestroy() {
+        // 调用销毁 API 对当前编辑器实例进行销毁
+        this.editor.destroy()
+        this.editor = null
+    }
  }
 </script>
 
@@ -476,5 +552,10 @@ const formConfig = [
 
 .flex-tittle {
     text-align: center;
+}
+
+.home {
+    width: 100%;
+    margin: auto;
 }
 </style>
