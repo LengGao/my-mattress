@@ -53,12 +53,28 @@ export const constantRoutes = [
   {
     path: '/',
     component: Layout,
-    children: [{
-      path: 'temp',
-      name: 'temp',
-      component: () => import('@/views/temp/temp/index'),
-      meta: { title: '测试页面', icon: 'dashboard' }
-    }]
+    meta: { title: '测试页面', icon: 'el-icon-s-help' },
+    children: [
+      {
+        path: 'temp',
+        name: 'temp',
+        component: () => import('@/views/temp/temp/index'),
+        meta: { title: '模板', icon: 'dashboard' }
+      },
+      {
+        path: 'FormModify',
+        name: 'FormModify',
+        component: () => import('@/views/template/FormModify'),
+        meta: { title: 'modify表单', icon: 'dashboard' }
+      },
+      {
+        path: 'FormTable',
+        name: 'FormTable',
+        component: () => import('@/views/template/FormTable'),
+        meta: { title: '表单表格', icon: 'dashboard' }
+      },
+
+    ]
   },
 
   {

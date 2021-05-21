@@ -1,72 +1,41 @@
 import request from '@/utils/request'
 
-export function save (params) {
+export function create (params) {
   return request({
-      url: '/admin/order/save',
+      url: '/admin/member/create',
       method: 'get',
       params: params
   })
 }
 
-export function cancel (params) {
+export function deleter (params) {
   return request({
-      url: '/admin/order/cancel',
+      url: '/admin/member/delete',
       method: 'POST',
       params: params
   })
 }
 
-// 发货
-export function send (params) {
+export function update (params) {
   return request({
-      url: '/admin/order/send',
+      url: '/admin/member/update',
       method: 'POST',
       params: params
   })
 }
-
-export function pay (params) {
-  return request({
-      url: '/admin/order/pay',
-      method: 'POST',
-      params: params
-  })
-}
-
 export function search (params) {
   return request({
-      url: '/admin/order/get',
+      url: '/admin/member/get',
       method: 'get',
       params: params
   })
 }
 
+// 分页
 export function all (params) {
   return request({
-      url: 'api/admin/order/paginate',
-      method: 'GET  ',
-      params: params
-  })
-}
-
-// 客户列表
-export function allClient (params) {
-  return request({
-      url: '/admin/order/members',
+      url: '/admin/member/paginate',
       method: 'get',
       params: params
   })
 }
-
-// 产品详情使用 产品模块接口
-
-// 可用产品列表
-export function canUseProducts (params) {
-  return request({
-      url: '/admin/order/products',
-      method: 'GET  ',
-      params: params
-  })
-}
-
-

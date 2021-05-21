@@ -74,8 +74,7 @@
 </template>
 
 <script>
-import { all,ban } from '@/api/infrastructure/store'
-import { provinces,cities,districts} from '@/api/infrastructure/range'
+import { all,ban } from '@/api/member/member.'
 import { vueDebounce } from '@/utils/index'
 // 门店管理
 let tableConfig = [
@@ -157,21 +156,6 @@ export default {
           if (!this.province_id || !this.city_id) { this.$message.error('请先选择省/市') } 
         break;
       }
-    },
-    getProvinces(name) {
-      provinces({name}).then(res => {
-        this.optionsProvince = res.data
-      })
-    },
-    getCity(province_id,name) {
-      cities({province_id,name}).then(res => {
-        this.optionsCity = res.data
-      })
-    },
-    getDistrict(city_id,name) {
-      districts({city_id,name}).then(res => {
-        this.optionsDistrict = res.data
-      })
     },
     /* 表格逻辑 */
     initTable() {
@@ -263,7 +247,7 @@ export default {
       // var items = []  // options: Array | 'function'
     },
     pretreatTable() {
-      // 预处理表格数据 
+      // 预处理表格数据
       let options = {
         "type": {0: '',1: '社区店',2: '商圈店',length: 3},
         "property": {0: '',1: '直营',2: '加盟',3: '合作',length: 4}
@@ -275,7 +259,6 @@ export default {
     },
     initComponet() {
       this.optionsType = [{label: '社区店',val: 1},{label: '商圈店',val: 2}]
-      this.getProvinces()
       this.preList = this.pretreatTable()
     },
   },
